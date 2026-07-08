@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "NewsItem": {
+      "title": "News Item",
+      "description": "A tactical intel update for the #KEMENARMY ticker.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The intel message content." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "createdAt", "updatedAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "Leaderboard Entry",
+      "description": "A soldier's rank and score in the tactical trivia.",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "username_lowercase": { "type": "string" },
+        "score": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "username_lowercase", "score", "timestamp"]
+    },
+    "Fan": {
+      "title": "Fan Information",
+      "description": "Collected fan details for the Kemena Army database.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "country": { "type": "string" },
+        "socialHandle": { "type": "string" },
+        "dob": { "type": "string", "format": "date" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "country", "timestamp"]
+    },
+    "AppConfig": {
+      "title": "App Configuration",
+      "description": "Dynamic content for the main landing page.",
+      "type": "object",
+      "properties": {
+        "heroImageUrl": { "type": "string" },
+        "bioText": { "type": "string" },
+        "battleMusicUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["heroImageUrl", "bioText", "battleMusicUrl", "updatedAt"]
+    },
+    "ArtistSlide": {
+      "title": "Artist Slide",
+      "description": "Data for the artist slideshow.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "imageUrl", "order"]
+    }
+  },
+  "firestore": {
+    "/config/{configId}": {
+      "schema": "AppConfig",
+      "description": "Main page configuration."
+    },
+    "/artists/{artistId}": {
+      "schema": "ArtistSlide",
+      "description": "Artists for the slideshow."
+    },
+    "/news/{newsId}": {
+      "schema": "NewsItem",
+      "description": "Live news feed items."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Recorded scores from the trivia challenge."
+    },
+    "/fans/{fanId}": {
+      "schema": "Fan",
+      "description": "Private fan database records."
+    }
+  }
+}

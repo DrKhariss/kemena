@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function isAdmin() { 
+      return isSignedIn() && 
+             (request.auth.token.email == 'chukwuebukankemena@gmail.com' || request.auth.token.email == 'admin@kemena.com' || request.auth.token.email == 'console@kemena.com'); 
+    }
+
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidConfig(data) {
+      return data.keys().hasAll(['heroImageUrl', 'bioText', 'battleMusicUrl', 'updatedAt']) &&
+             data.keys().size() == 4 &&
+             data.heroImageUrl is string &&
+             data.bioText is string && data.bioText.size() <= 2000 &&
+             data.battleMusicUrl is string && data.battleMusicUrl.size() <= 2000 &&
+             data.updatedAt is timestamp;
+    }
+
+    match /config/mainPage {
+      allow read: if true;
+      allow write: if isAdmin() && isValidConfig(incoming()) && incoming().updatedAt == request.time;
+    }
+
+    match /config/credentials {
+      allow read: if true;
+      allow write: if isAdmin() && incoming().keys().hasAll(['username']) && incoming().username is string;
+    }
+
+    function isValidArtist(data) {
+      return data.keys().hasAll(['name', 'imageUrl', 'order']) &&
+             data.keys().size() == 3 &&
+             data.name is string && data.imageUrl is string &&
+             data.order is number;
+    }
+
+    match /artists/{artistId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidArtist(incoming());
+    }
+
+    function isValidNewsItem(data) {
+      return data.keys().hasAll(['text', 'createdAt', 'updatedAt']) &&
+             data.keys().size() == 3 &&
+             data.text is string && data.text.size() <= 256 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    match /news/{newsId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidId(newsId) && isValidNewsItem(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidNewsItem(incoming()) && (
+        incoming().updatedAt == request.time && 
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['text', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    function isValidLeaderboardEntry(data) {
+       return data.keys().hasAll(['username', 'username_lowercase', 'score', 'rank', 'remark', 'timestamp']) &&
+              data.keys().size() == 6 &&
+              data.username is string && data.username.size() <= 32 &&
+              data.username_lowercase is string && data.username_lowercase.size() <= 32 &&
+              data.score is number &&
+              data.rank is string &&
+              data.remark is string &&
+              data.timestamp is timestamp;
+    }
+
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow create: if isValidLeaderboardEntry(incoming()) && incoming().timestamp == request.time;
+      allow update: if isValidLeaderboardEntry(incoming()) && 
+                       incoming().username_lowercase == existing().username_lowercase &&
+                       incoming().timestamp == request.time;
+      allow delete: if isAdmin();
+    }
+  }
+}

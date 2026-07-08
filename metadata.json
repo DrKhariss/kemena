@@ -1,0 +1,6 @@
+{
+  "name": "Kemena Army",
+  "description": "The official landing page and trivia portal for Kemena - a futuristic Afro-fusion experience for the #KEMENARMY.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

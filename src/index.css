@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Big+Shoulders+Display:wght@900&family=Inter:wght@400;500;700;800;900&display=swap');
+@import url('https://fonts.cdnfonts.com/css/amsterdam');
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-army: "Big Shoulders Display", sans-serif;
+  --font-cursive: "Amsterdam", "Amsterdam Handwriting", cursive;
+  
+  --breakpoint-xs: 480px;
+  
+  --color-army-dark: var(--bg-primary);
+  --color-army-green: var(--bg-secondary);
+  --color-army-light: var(--text-muted);
+  --color-tactical-amber: #FF0000;
+  --color-tactical-red: #DC2626;
+  --color-tactical-cyan: var(--text-primary);
+  
+  --shadow-hud: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hud-danger: 0 0 20px rgba(255, 62, 62, 0.2);
+}
+
+@layer base {
+  :root {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #E5E7EB;
+    --text-primary: #000000;
+    --text-muted: #6B7280;
+    --border-color: rgba(0, 0, 0, 0.05);
+  }
+
+  :root.dark {
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #1A1A1A;
+    --text-primary: #FFFFFF;
+    --text-muted: #9CA3AF;
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  html {
+    @apply p-0 m-0 w-full min-h-screen;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-army-dark text-tactical-cyan font-sans leading-relaxed m-0 p-0 min-h-screen w-full transition-colors duration-300;
+    background-image: 
+      radial-gradient(circle at 2px 2px, var(--border-color) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+}
+
+.main-wrapper {
+  @apply w-full min-h-screen max-w-[1440px] relative z-10 flex flex-col mx-auto border-x transition-colors duration-300;
+  border-color: var(--border-color);
+}
+
+.hero-heading {
+  @apply font-army uppercase font-black tracking-[-0.02em] text-tactical-cyan leading-[0.9] mb-3 text-[32px] xs:text-[40px] sm:text-[42px] md:text-[60px] lg:text-[110px];
+}
+
+.hero-heading .highlight {
+  @apply bg-tactical-amber text-white px-2 sm:px-4 py-1 inline-block mt-1 skew-x-[-12deg] text-[32px] xs:text-[40px] sm:text-[42px] md:text-[60px] lg:text-[110px];
+}
+
+.subtitle {
+  @apply text-army-light font-mono text-[9px] sm:text-[12px] uppercase tracking-[0.1em] sm:tracking-[0.3em] font-bold;
+}
+
+.btn-primary {
+  @apply bg-transparent border text-tactical-cyan w-full py-4 rounded-none uppercase font-mono font-bold tracking-[0.1em] transition-all duration-300 relative overflow-hidden active:scale-95 text-[11px] sm:text-sm;
+  border-color: var(--text-primary);
+}
+
+.btn-primary::before {
+  content: '';
+  @apply absolute inset-0 bg-tactical-cyan opacity-0 transition-opacity duration-300;
+}
+
+.btn-primary:hover::before {
+  @apply opacity-5;
+}
+
+.btn-primary:hover {
+  @apply border-tactical-amber text-tactical-amber shadow-hud;
+}
+
+.input-name {
+  @apply bg-army-green/20 border-l-2 text-tactical-cyan px-4 py-3.5 rounded-none w-full focus:outline-none focus:bg-army-green/30 focus:border-tactical-amber transition-all duration-300 placeholder-army-light font-mono text-xs sm:text-sm;
+  border-left-color: var(--text-primary);
+}
+
+.card-container {
+  @apply bg-army-dark text-tactical-cyan p-4 sm:p-8 rounded-none border relative flex flex-col gap-3 shadow-xl box-border transition-colors duration-300;
+  border-color: var(--border-color);
+  width: 100%;
+  max-width: min(450px, 100%);
+}
+
+.card-container::before, .card-container::after {
+  content: '';
+  @apply absolute w-4 h-4;
+  border-color: var(--text-primary);
+}
+
+.card-container::before {
+  @apply top-0 left-0 border-t-2 border-l-2;
+}
+
+.card-container::after {
+  @apply bottom-0 right-0 border-b-2 border-r-2;
+}
+
+
+.nav-link {
+  @apply text-[11px] md:text-[10px] lg:text-[14px] uppercase font-mono font-bold !text-army-light hover:!text-tactical-amber transition-colors duration-300 flex items-center gap-2;
+}
+
+.logo-text {
+  @apply !text-tactical-amber text-[36px] sm:text-[48px] font-cursive normal-case;
+}
+
+.pagination-dots {
+  @apply absolute bottom-6 sm:bottom-10 right-6 sm:right-12 flex gap-3;
+}
+
+.dot {
+  @apply w-2 h-2 bg-black/10 rounded-full;
+}
+
+.dot.active {
+  @apply bg-tactical-amber w-6 sm:w-8 rounded-none;
+}
+
+.tactical-border {
+  @apply border border-black/10 relative;
+}
+
+.hud-label {
+  @apply font-mono text-[9px] sm:text-[10px] text-army-light uppercase tracking-widest mb-1;
+}
+
+.scanline {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.02) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0, 0.01), rgba(0, 0, 255, 0.01));
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.1;
+}
+
+.nav-fixed-hardened {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 10000 !important;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+.animate-bounce-x {
+  animation: bounce-x 1s infinite;
+}
+
