@@ -57,7 +57,9 @@ export default function Home() {
   const [config, setConfig] = useState<ConfigData>({
     heroImageUrl: Odoo,
     bioText: `When I was recording this song, it felt how most record I make feels, special.
-But this one made it to the top of the pile, it’s its time`,
+But this one made it to the top of the pile, it’s its time
+
+Odoo , out Friday the 10th`,
   });
   
   const [artists, setArtists] = useState<Artist[]>([
