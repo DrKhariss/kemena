@@ -48,12 +48,12 @@ export default function AdminConsole() {
         const data = snapshot.data();
         
         let fetchedBioText = data.bioText || '';
-        if (fetchedBioText === 'Welcome to the world of Kemena. Exploring the rich intersections of Afro-fusion rhythms and soundscapes. Every beat is a journey into the soul of modern African music, retold to the world.' || fetchedBioText === 'Heyyyyyy') {
-          fetchedBioText = 'When I was recording this song, it felt how most record I make feels, special.\nBut this one made it to the top of the pile, it’s its time';
-        }
+        if (fetchedBioText === 'Welcome to the world of Kemena. Exploring the rich intersections of Afro-fusion rhythms and soundscapes. Every beat is a journey into the soul of modern African music, retold to the world.' 
+            ||  { fetchedBioText = 'When I was recording this song, it felt how most records I make feel --special.\nBut this one made it to the top of the pile, it’s its time. Odoo , out Friday the 10th'; }
         
         let fetchedHeroImage = data.heroImageUrl || '';
-        if (fetchedHeroImage === 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2070&auto=format&fit=crop' || fetchedHeroImage.length === 431763) {
+        if (fetchedHeroImage === '.../assets/Odoo.jpg' 
+            || fetchedHeroImage.length === 431763) {
           fetchedHeroImage = Odoo;
         }
 
