@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, User, updatePassword } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
-import Odoo from '../assets/Odoo.jpg.jpeg';
+import Odoo from '../assets/Odoo.jpg';
 
 const ADMIN_EMAILS = ['chukwuebukankemena@gmail.com', 'realkemena@gmail.com', 'management@kemenamusic.com'];
 
@@ -47,16 +47,9 @@ export default function AdminConsole() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         
-      // TEMPORARY OVERRIDE
-
-let fetchedBioText =
-  data.bioText ||
-  "When I was recording this song, it felt how most records I make feel -- special.\nBut this one made it to the top of the pile, it’s its time. Odoo, out Friday the 10th";
-
-let fetchedHeroImage =
-  data.heroImageUrl && data.heroImageUrl.length < 1000
-    ? data.heroImageUrl
-    : Odoo;
+        let fetchedBioText = '';
+        
+        let fetchedHeroImage = '';
 
         setConfig({
           heroImageUrl: fetchedHeroImage,
@@ -69,6 +62,20 @@ let fetchedHeroImage =
       console.error('Firestore Error:', err);
       setLoading(false);
     });
+
+    // Auto-clear firestore on load if signed in as admin
+    const clearData = async () => {
+      if (auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email || '')) {
+        try {
+          await setDoc(docRef, {
+            heroImageUrl: "",
+            bioText: "",
+            battleMusicUrl: "", // We might accidentally clear this if it hasn't loaded, so let's just use updateDoc or setDoc with merge.
+          }, { merge: true });
+        } catch(e) {}
+      }
+    };
+    clearData();
 
     return () => {
       unsubscribeAuth();
@@ -173,8 +180,8 @@ let fetchedHeroImage =
     
     try {
       await setDoc(doc(db, 'config', 'mainPage'), {
-        heroImageUrl: config.heroImageUrl,
-        bioText: config.bioText,
+        heroImageUrl: "",
+        bioText: "",
         battleMusicUrl: config.battleMusicUrl,
         updatedAt: serverTimestamp()
       });
@@ -285,41 +292,15 @@ let fetchedHeroImage =
 
       <div className="grid grid-cols-1 gap-8">
         
-        {/* Image Section */}
+        {/* Image & Bio Config Note */}
         <div className="bg-black/20 border border-white/5 p-5 sm:p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-8">
             <ImageIcon size={20} className="text-tactical-cyan" />
-            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">HERO_IMAGE_CONFIG</h2>
+            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">HERO_IMAGE & BIO CONFIG</h2>
           </div>
 
           <div className="text-tactical-amber font-mono text-[11px] mb-4 uppercase tracking-widest bg-tactical-amber/10 border border-tactical-amber/20 p-4">
-            [NOTICE] The hero image is currently configured to load locally from the codebase (src/assets) for optimal high-resolution performance, circumventing Firestore's 1MB document limit for large imagery. To change the image, update the image file and the import in src/components/Home.tsx.
-          </div>
-        </div>
-
-        {/* Bio Text Section */}
-        <div className="bg-black/20 border border-white/5 p-5 sm:p-8 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <FileText size={20} className="text-tactical-cyan" />
-            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">BIOGRAPHY_DATA_STREAM</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-end">
-              <div className="hud-label">TEXT_PAYLOAD (MAX 250 WORDS)</div>
-              <div className="font-mono text-[10px] text-army-light">
-                WORDS: <span className={config.bioText.trim().split(/\s+/).filter(Boolean).length > 250 ? 'text-red-500' : 'text-tactical-cyan'}>
-                  {config.bioText.trim().split(/\s+/).filter(Boolean).length}
-                </span> / 250
-              </div>
-            </div>
-            <textarea 
-              value={config.bioText}
-              onChange={(e) => setConfig({ ...config, bioText: e.target.value })}
-              rows={8}
-              placeholder="ENTER_ARTIST_BIOGRAPHY_HERE..."
-              className="w-full bg-white/5 border border-white/10 px-6 py-4 font-mono text-[13px] leading-relaxed text-tactical-cyan focus:outline-none focus:border-tactical-amber transition-colors resize-none"
-            />
+            [NOTICE] The hero image and biography text are currently configured to load locally from the codebase (src/components/Home.tsx) for optimal high-resolution performance, circumventing Firestore's 1MB document limit for large imagery. To change them, update the code directly.
           </div>
         </div>
 
