@@ -35,7 +35,7 @@ import oxygen from '../assets/oxygen.jpg';
 import dwin from '../assets/dwin.jpg'
 import mavin from '../assets/mavin.jpg'
 import chocolatecity from '../assets/chocolatecity.jpg'
-import Odoo from '../assets/Odoo.jpg'
+import Odoo from '../assets/Odoo.jpg.jpeg'
 
 // Import Swiper styles
 import 'swiper/css';
@@ -56,10 +56,8 @@ export default function Home() {
   const { theme } = useTheme();
   const [config, setConfig] = useState<ConfigData>({
     heroImageUrl: Odoo,
-    bioText: `When I was recording this song, it felt how most record I make feels, special.
-But this one made it to the top of the pile, it’s its time
-
-Odoo , out Friday the 10th`,
+    bioText: `When I was recording this song, it felt how most records I make feel -special.
+But this one made it to the top of the pile, it’s its time now. Odoo, out Friday the 10th`,
   });
   
   const [artists, setArtists] = useState<Artist[]>([
