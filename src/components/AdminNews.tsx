@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, User, updatePassword } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
-import Odoo from '../assets/Odoo.jpg';
+import Odoo from '../assets/Odoo.jpg.jpeg';
 
 const ADMIN_EMAILS = ['chukwuebukankemena@gmail.com', 'realkemena@gmail.com', 'management@kemenamusic.com'];
 
