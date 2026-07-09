@@ -35,7 +35,7 @@ import oxygen from '../assets/oxygen.jpg';
 import dwin from '../assets/dwin.jpg'
 import mavin from '../assets/mavin.jpg'
 import chocolatecity from '../assets/chocolatecity.jpg'
-import Odoo from '../assets/Odoo.jpg.jpeg'
+import Odoo from '../assets/Odoo.jpg'
 
 // Import Swiper styles
 import 'swiper/css';
@@ -56,8 +56,7 @@ export default function Home() {
   const { theme } = useTheme();
   const [config, setConfig] = useState<ConfigData>({
     heroImageUrl: Odoo,
-    bioText: `When I was recording this song, it felt how most records I make feel -special.
-But this one made it to the top of the pile, it’s its time now. Odoo, out Friday the 10th`,
+    bioText: `When I was recording this song, it felt how most records I make feel --special. But this one made it to the top of the pile, it’s its time now. Odoo, out Friday the 10th.`,
   });
   
   const [artists, setArtists] = useState<Artist[]>([
@@ -348,18 +347,10 @@ But this one made it to the top of the pile, it’s its time now. Odoo, out Frid
     const unsubscribeConfig = onSnapshot(doc(db, 'config', 'mainPage'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as ConfigData;
-        const defaultOldBio1 = 'Welcome to the world of Kemena. Exploring the rich intersections of Afro-fusion rhythms and soundscapes. Every beat is a journey into the soul of modern African music, retold to the world.';
-        const defaultOldBio2 = 'Heyyyyyy';
-        
-        if (data.bioText === defaultOldBio1 || data.bioText === defaultOldBio2 || !data.bioText) {
-          data.bioText = `When I was recording this song, it felt how most record I make feels, special.\nBut this one made it to the top of the pile, it’s its time`;
-        }
-        
-        // We preserve the locally set heroImageUrl from the initial state
-        // so that the user can change the picture in code without the database overriding it.
+        // We preserve the locally set heroImageUrl and bioText from the initial state
+        // so that the user can change the picture and bio in code without the database overriding it.
         setConfig(prev => ({
           ...prev,
-          bioText: data.bioText,
           battleMusicUrl: data.battleMusicUrl || prev.battleMusicUrl
         }));
       }
