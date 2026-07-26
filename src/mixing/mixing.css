@@ -1,0 +1,268 @@
+.hero-heading {
+  font-family: var(--font-army);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  color: var(--color-tactical-cyan);
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+}
+
+.card-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: min(520px, 100%);
+  padding: 1.5rem;
+  background: var(--color-army-dark);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 640px) {
+  .card-container {
+    padding: 2rem;
+  }
+}
+
+.card-container::before,
+.card-container::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border-color: var(--text-primary);
+}
+
+.card-container::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.card-container::after {
+  right: 0;
+  bottom: 0;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
+
+.input-name {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-tactical-cyan);
+  background: color-mix(in oklab, var(--color-army-green) 20%, transparent);
+  border: none;
+  border-left: 2px solid var(--text-primary);
+  outline: none;
+  transition: all 0.3s;
+}
+
+.input-name::placeholder {
+  color: color-mix(in oklab, var(--color-army-light) 50%, transparent);
+}
+
+.input-name:focus {
+  border-left-color: var(--color-tactical-amber);
+  background: color-mix(in oklab, var(--color-army-green) 30%, transparent);
+}
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-tactical-cyan);
+  background: transparent;
+  border: 1px solid var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-tactical-cyan);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  border-color: var(--color-tactical-amber);
+  color: var(--color-tactical-amber);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary:hover:not(:disabled)::before {
+  opacity: 0.05;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary span {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: var(--color-tactical-amber);
+}
+
+.logo-text {
+  font-family: var(--font-army);
+  font-size: 1.75rem;
+  color: var(--color-tactical-amber);
+  text-decoration: none;
+}
+
+.plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: var(--color-army-dark);
+  border: 1px solid var(--border-color);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.plan-card:hover {
+  border-color: color-mix(in oklab, var(--color-tactical-amber) 40%, transparent);
+  transform: translateY(-2px);
+}
+
+.plan-card.featured {
+  border-color: var(--color-tactical-amber);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--color-army-dark) 45%);
+}
+
+.plan-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.2rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: white;
+  background: var(--color-tactical-amber);
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+}
+
+.step.active {
+  color: var(--color-tactical-amber);
+}
+
+.step-divider {
+  width: 0.75rem;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.error-text {
+  color: var(--color-tactical-red);
+  font-size: 0.875rem;
+}
+
+.terms-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-army-light);
+  line-height: 1.65;
+}
+
+.terms-scroll p + p {
+  margin-top: 1rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.checkbox-row input {
+  margin-top: 0.2rem;
+  accent-color: var(--color-tactical-amber);
+}
+
+.receipt-status {
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.phone-link {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-tactical-amber);
+  text-decoration: none;
+}
+
+.phone-link:hover {
+  color: #f87171;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
