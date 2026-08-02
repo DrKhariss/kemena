@@ -80,16 +80,15 @@ export default function ReceiptPage() {
         </dl>
 
         <div className="mt-6 border-t border-white/10 pt-5 text-sm text-army-light">
-          <h3 className="mb-3 font-mono text-xs uppercase tracking-widest text-white">How to submit stems</h3>
+          <h3 className="mb-3 font-mono text-xs uppercase tracking-widest text-white">Next steps</h3>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              Send all stems from <strong className="text-white">{receipt.email}</strong> only.
+              Create a password, then open your <strong className="text-white">account</strong> to submit mixes
+              in-app with a stem link.
             </li>
             <li>
-              Email stems to <strong className="text-white">{STEMS_EMAIL}</strong> — no other address.
-            </li>
-            <li>
-              Include receipt code <strong className="text-white">{receipt.receiptCode}</strong> in the subject line.
+              Include receipt code <strong className="text-white">{receipt.receiptCode}</strong> if you email
+              anything to <strong className="text-white">{STEMS_EMAIL}</strong>.
             </li>
             <li>Maximum of two revisions per mix.</li>
           </ul>

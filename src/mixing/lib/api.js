@@ -60,8 +60,36 @@ export async function fetchReceipt(reference) {
   return request(`/receipt?reference=${encodeURIComponent(reference)}`);
 }
 
-export async function createMixRequest(title, notes) {
-  return request("/mix-requests", { method: "POST", body: { title, notes } });
+export async function createMixRequest(payload) {
+  return request("/mix-requests", {
+    method: "POST",
+    body: {
+      title: payload.title,
+      artist_name: payload.artistName,
+      genre: payload.genre,
+      bpm: payload.bpm,
+      musical_key: payload.musicalKey,
+      stem_link: payload.stemLink,
+      reference_links: payload.referenceLinks,
+      notes: payload.notes,
+    },
+  });
+}
+
+export async function updateMixRequest(id, payload) {
+  return request(`/mix-requests/${id}`, {
+    method: "PATCH",
+    body: {
+      title: payload.title,
+      artist_name: payload.artistName,
+      genre: payload.genre,
+      bpm: payload.bpm,
+      musical_key: payload.musicalKey,
+      stem_link: payload.stemLink,
+      reference_links: payload.referenceLinks,
+      notes: payload.notes,
+    },
+  });
 }
 
 export async function fetchAdminStats() {
@@ -84,8 +112,11 @@ export async function updateAdminSubscription(id, payload) {
   return request(`/admin/subscriptions/${id}`, { method: "PATCH", body: payload });
 }
 
-export async function updateAdminMixRequest(id, status) {
-  return request(`/admin/mix-requests/${id}`, { method: "PATCH", body: { status } });
+export async function updateAdminMixRequest(id, status, adminNotes) {
+  return request(`/admin/mix-requests/${id}`, {
+    method: "PATCH",
+    body: { status, admin_notes: adminNotes },
+  });
 }
 
 export function openPaystack({ publicKey, email, amountKobo, reference, planId, planName, fullName, onSuccess, onClose }) {

@@ -56,8 +56,16 @@ export function initDb() {
       user_id TEXT NOT NULL,
       subscription_id TEXT NOT NULL,
       title TEXT NOT NULL,
+      artist_name TEXT,
+      genre TEXT,
+      bpm TEXT,
+      musical_key TEXT,
+      stem_link TEXT,
+      reference_links TEXT,
       notes TEXT,
       status TEXT NOT NULL DEFAULT 'submitted',
+      revision_count INTEGER NOT NULL DEFAULT 0,
+      admin_notes TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id),
@@ -67,6 +75,28 @@ export function initDb() {
     CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
     CREATE INDEX IF NOT EXISTS idx_mix_requests_user ON mix_requests(user_id);
   `);
+
+  ensureMixRequestColumns();
+}
+
+function ensureMixRequestColumns() {
+  const columns = db.prepare("PRAGMA table_info(mix_requests)").all().map((col) => col.name);
+  const additions = [
+    ["artist_name", "TEXT"],
+    ["genre", "TEXT"],
+    ["bpm", "TEXT"],
+    ["musical_key", "TEXT"],
+    ["stem_link", "TEXT"],
+    ["reference_links", "TEXT"],
+    ["revision_count", "INTEGER NOT NULL DEFAULT 0"],
+    ["admin_notes", "TEXT"],
+  ];
+
+  for (const [name, type] of additions) {
+    if (!columns.includes(name)) {
+      db.exec(`ALTER TABLE mix_requests ADD COLUMN ${name} ${type}`);
+    }
+  }
 }
 
 export function ensureAdminUser() {
@@ -222,15 +252,78 @@ export function getSubscriptionsForUser(userId) {
     .all(userId);
 }
 
-export function createMixRequest(userId, subscriptionId, title, notes) {
+export function createMixRequest(userId, subscriptionId, payload) {
   const id = randomUUID();
   const timestamp = now();
+  const {
+    title,
+    artistName,
+    genre,
+    bpm,
+    musicalKey,
+    stemLink,
+    referenceLinks,
+    notes,
+  } = payload;
+
   db.prepare(
-    `INSERT INTO mix_requests (id, user_id, subscription_id, title, notes, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, 'submitted', ?, ?)`,
-  ).run(id, userId, subscriptionId, title.trim(), notes?.trim() || null, timestamp, timestamp);
+    `INSERT INTO mix_requests (
+      id, user_id, subscription_id, title, artist_name, genre, bpm, musical_key,
+      stem_link, reference_links, notes, status, revision_count, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', 0, ?, ?)`,
+  ).run(
+    id,
+    userId,
+    subscriptionId,
+    title.trim(),
+    artistName?.trim() || null,
+    genre?.trim() || null,
+    bpm?.trim() || null,
+    musicalKey?.trim() || null,
+    stemLink?.trim() || null,
+    referenceLinks?.trim() || null,
+    notes?.trim() || null,
+    timestamp,
+    timestamp,
+  );
 
   db.prepare("UPDATE subscriptions SET tracks_used = tracks_used + 1 WHERE id = ?").run(subscriptionId);
+
+  return getMixRequestById(id);
+}
+
+export function updateMixRequestBySubscriber(id, userId, payload) {
+  const existing = getMixRequestById(id);
+  if (!existing || existing.user_id !== userId) return null;
+  if (!["submitted", "revision"].includes(existing.status)) {
+    return { error: "This mix can no longer be edited." };
+  }
+
+  const timestamp = now();
+  db.prepare(
+    `UPDATE mix_requests SET
+      title = COALESCE(?, title),
+      artist_name = COALESCE(?, artist_name),
+      genre = COALESCE(?, genre),
+      bpm = COALESCE(?, bpm),
+      musical_key = COALESCE(?, musical_key),
+      stem_link = COALESCE(?, stem_link),
+      reference_links = COALESCE(?, reference_links),
+      notes = COALESCE(?, notes),
+      updated_at = ?
+     WHERE id = ?`,
+  ).run(
+    payload.title?.trim() || null,
+    payload.artistName?.trim() || null,
+    payload.genre?.trim() || null,
+    payload.bpm?.trim() || null,
+    payload.musicalKey?.trim() || null,
+    payload.stemLink?.trim() || null,
+    payload.referenceLinks?.trim() || null,
+    payload.notes?.trim() || null,
+    timestamp,
+    id,
+  );
 
   return getMixRequestById(id);
 }
@@ -300,13 +393,22 @@ export function listAllMixRequests() {
     .all();
 }
 
-export function updateMixRequestStatus(id, status) {
+export function updateMixRequestStatus(id, status, adminNotes) {
+  const existing = getMixRequestById(id);
+  if (!existing) return null;
+
   const timestamp = now();
-  db.prepare("UPDATE mix_requests SET status = ?, updated_at = ? WHERE id = ?").run(
-    status,
-    timestamp,
-    id,
-  );
+  const revisionBump = status === "revision" && existing.status !== "revision" ? 1 : 0;
+
+  db.prepare(
+    `UPDATE mix_requests
+     SET status = ?,
+         admin_notes = COALESCE(?, admin_notes),
+         revision_count = revision_count + ?,
+         updated_at = ?
+     WHERE id = ?`,
+  ).run(status, adminNotes?.trim() || null, revisionBump, timestamp, id);
+
   return getMixRequestById(id);
 }
 

@@ -19,6 +19,7 @@ import {
   ensureAdminUser,
   getActiveSubscriptionForUser,
   getAdminStats,
+  getMixRequestById,
   getMixRequestsForUser,
   getSubscriptionByReference,
   getSubscriptionsForUser,
@@ -30,6 +31,7 @@ import {
   listSubscribers,
   markTermsAccepted,
   setUserPassword,
+  updateMixRequestBySubscriber,
   updateMixRequestStatus,
   updateSubscriptionAdmin,
   upsertSubscriber,
@@ -93,6 +95,31 @@ function subscriptionView(sub) {
     expiresAt: sub.expires_at,
     paidAt: sub.paid_at,
     duration: plan?.duration,
+  };
+}
+
+function mixRequestView(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    artistName: row.artist_name,
+    genre: row.genre,
+    bpm: row.bpm,
+    musicalKey: row.musical_key,
+    stemLink: row.stem_link,
+    referenceLinks: row.reference_links,
+    notes: row.notes,
+    status: row.status,
+    revisionCount: row.revision_count || 0,
+    adminNotes: row.admin_notes,
+    subscriptionId: row.subscription_id,
+    receiptCode: row.receipt_code,
+    planId: row.plan_id,
+    email: row.email,
+    fullName: row.full_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -203,7 +230,7 @@ app.get("/mixing/api/auth/me", authMiddleware, (req, res) => {
     user: publicUser(user),
     activeSubscription: subscriptionView(activeSubscription),
     subscriptions: subscriptions.map(subscriptionView),
-    mixRequests,
+    mixRequests: mixRequests.map(mixRequestView),
   });
 });
 
@@ -311,9 +338,22 @@ app.get("/mixing/api/receipt", async (req, res) => {
 });
 
 app.post("/mixing/api/mix-requests", authMiddleware, (req, res) => {
-  const { title, notes } = req.body || {};
+  const {
+    title,
+    artist_name: artistName,
+    genre,
+    bpm,
+    musical_key: musicalKey,
+    stem_link: stemLink,
+    reference_links: referenceLinks,
+    notes,
+  } = req.body || {};
+
   if (!title || title.trim().length < 2) {
     return res.status(400).json({ error: "Track title is required." });
+  }
+  if (!stemLink || !String(stemLink).trim()) {
+    return res.status(400).json({ error: "Stem link is required (Drive, Dropbox, WeTransfer, etc.)." });
   }
 
   const user = getUserById(req.user.sub);
@@ -326,8 +366,48 @@ app.post("/mixing/api/mix-requests", authMiddleware, (req, res) => {
     return res.status(403).json({ error: "Track limit reached for your current plan." });
   }
 
-  const mixRequest = createMixRequest(user.id, sub.id, title, notes);
-  return res.json({ ok: true, mixRequest });
+  const mixRequest = createMixRequest(user.id, sub.id, {
+    title,
+    artistName,
+    genre,
+    bpm,
+    musicalKey,
+    stemLink,
+    referenceLinks,
+    notes,
+  });
+
+  return res.json({ ok: true, mixRequest: mixRequestView(mixRequest) });
+});
+
+app.patch("/mixing/api/mix-requests/:id", authMiddleware, (req, res) => {
+  const result = updateMixRequestBySubscriber(req.params.id, req.user.sub, {
+    title: req.body?.title,
+    artistName: req.body?.artist_name,
+    genre: req.body?.genre,
+    bpm: req.body?.bpm,
+    musicalKey: req.body?.musical_key,
+    stemLink: req.body?.stem_link,
+    referenceLinks: req.body?.reference_links,
+    notes: req.body?.notes,
+  });
+
+  if (!result) {
+    return res.status(404).json({ error: "Mix request not found." });
+  }
+  if (result.error) {
+    return res.status(403).json({ error: result.error });
+  }
+
+  return res.json({ ok: true, mixRequest: mixRequestView(result) });
+});
+
+app.get("/mixing/api/mix-requests/:id", authMiddleware, (req, res) => {
+  const mix = getMixRequestById(req.params.id);
+  if (!mix || (mix.user_id !== req.user.sub && req.user.role !== "admin")) {
+    return res.status(404).json({ error: "Mix request not found." });
+  }
+  return res.json({ mixRequest: mixRequestView(mix) });
 });
 
 app.get("/mixing/api/admin/stats", authMiddleware, adminMiddleware, (_req, res) => {
@@ -343,7 +423,7 @@ app.get("/mixing/api/admin/subscriptions", authMiddleware, adminMiddleware, (_re
 });
 
 app.get("/mixing/api/admin/mix-requests", authMiddleware, adminMiddleware, (_req, res) => {
-  return res.json({ mixRequests: listAllMixRequests() });
+  return res.json({ mixRequests: listAllMixRequests().map(mixRequestView) });
 });
 
 app.patch("/mixing/api/admin/subscriptions/:id", authMiddleware, adminMiddleware, (req, res) => {
@@ -364,9 +444,9 @@ app.patch("/mixing/api/admin/mix-requests/:id", authMiddleware, adminMiddleware,
     return res.status(400).json({ error: "Invalid status." });
   }
 
-  const updated = updateMixRequestStatus(req.params.id, status);
+  const updated = updateMixRequestStatus(req.params.id, status, req.body?.admin_notes);
   if (!updated) {
     return res.status(404).json({ error: "Mix request not found." });
   }
-  return res.json({ mixRequest: updated });
+  return res.json({ mixRequest: mixRequestView(updated) });
 });

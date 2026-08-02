@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import MixingMusicPlayer from "./MixingMusicPlayer.jsx";
 
 const STEPS = [
   { id: "signup", label: "Sign up" },
@@ -29,6 +30,8 @@ export default function MixingLayout() {
   const active = stepIndex(pathname);
   const showSteps = active >= 0;
   const { user } = useAuth();
+  const showMusic =
+    pathname.startsWith("/mixing/account") || pathname.startsWith("/mixing/admin");
 
   return (
     <div className="mixing-shell min-h-[calc(100vh-80px)]">
@@ -75,6 +78,8 @@ export default function MixingLayout() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
         <Outlet />
       </main>
+
+      {showMusic && <MixingMusicPlayer />}
 
       <footer className="no-print border-t border-white/10 px-4 py-8 text-center text-sm text-army-light">
         Stereo mixing &amp; mastering · Radio &amp; streaming ready
