@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Loader2, LogIn, LogOut, Shield, AlertTriangle, Image as ImageIcon, FileText, Music, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { 
   doc, 
   onSnapshot, 
@@ -10,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, User, updatePassword } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
+import { login as mixingLogin } from '../mixing/lib/api.js';
 import Odoo from '../assets/Odoo.jpg';
 
 const ADMIN_EMAILS = ['chukwuebukankemena@gmail.com', 'realkemena@gmail.com', 'management@kemenamusic.com'];
@@ -21,6 +23,7 @@ interface ConfigData {
 }
 
 export default function AdminConsole() {
+  const navigate = useNavigate();
   const [config, setConfig] = useState<ConfigData>({
     heroImageUrl: '',
     bioText: '',
@@ -36,6 +39,7 @@ export default function AdminConsole() {
   const [newPassword, setNewPassword] = useState('');
   const [credMessage, setCredMessage] = useState('');
   const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
@@ -84,6 +88,29 @@ export default function AdminConsole() {
   }, []);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setMessage('ERROR: EMAIL_AND_PASSWORD_REQUIRED');
+      return;
+    }
+
+    setAuthBusy(true);
+    setMessage('');
+
+    try {
+      // Mid-Side mixing admin (SQLite/JWT) — same console entry for /admin
+      const mixing = await mixingLogin(email, password);
+      if (mixing.user?.role === 'admin') {
+        navigate('/mixing/admin');
+        return;
+      }
+      if (mixing.user) {
+        navigate('/mixing/account');
+        return;
+      }
+    } catch {
+      // Not a mixing account — fall through to Firebase site console auth
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
@@ -116,6 +143,8 @@ export default function AdminConsole() {
         console.error(err);
         setMessage('ERROR: LOGIN_FAILED');
       }
+    } finally {
+      setAuthBusy(false);
     }
   };
 
@@ -217,6 +246,8 @@ export default function AdminConsole() {
           </h1>
           <p className="font-mono text-[10px] sm:text-[11px] text-army-light uppercase tracking-widest mb-8 px-2">
             Signal restricted to #KEMENA_HIGH_COMMAND authorized relay nodes only.
+            <br />
+            Mid-Side mixing admin credentials open the mixing dashboard.
           </p>
           <div className="w-full max-w-sm mx-auto flex flex-col gap-4 mb-8">
             <input 
@@ -224,7 +255,7 @@ export default function AdminConsole() {
               placeholder="email" 
               value={email}
               onChange={(e) => setUsername(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              onKeyDown={(e) => e.key === 'Enter' && !authBusy && handleLogin()}
               className="w-full bg-white/5 border border-white/10 px-4 py-3 font-mono text-[11px] text-tactical-cyan focus:outline-none focus:border-tactical-amber text-center"
             />
             <div className="relative">
@@ -233,7 +264,7 @@ export default function AdminConsole() {
                 placeholder="Password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                onKeyDown={(e) => e.key === 'Enter' && !authBusy && handleLogin()}
                 className="w-full bg-white/5 border border-white/10 px-4 py-3 font-mono text-[11px] text-tactical-cyan focus:outline-none focus:border-tactical-amber text-center pr-10"
               />
               <button 
@@ -247,9 +278,11 @@ export default function AdminConsole() {
           </div>
           <button 
             onClick={handleLogin}
-            className="flex items-center justify-center gap-3 bg-tactical-cyan text-army-dark px-4 sm:px-8 py-3 mx-auto font-mono text-[11px] uppercase font-bold hover:bg-tactical-amber hover:text-white transition-all active:scale-95 w-full max-w-sm"
+            disabled={authBusy}
+            className="flex items-center justify-center gap-3 bg-tactical-cyan text-army-dark px-4 sm:px-8 py-3 mx-auto font-mono text-[11px] uppercase font-bold hover:bg-tactical-amber hover:text-white transition-all active:scale-95 w-full max-w-sm disabled:opacity-60"
           >
-            <LogIn size={18} /> AUTHENTICATE_OPERATOR
+            {authBusy ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />}
+            {authBusy ? 'AUTHENTICATING…' : 'AUTHENTICATE_OPERATOR'}
           </button>
           
           {user && (
@@ -287,6 +320,22 @@ export default function AdminConsole() {
           className="flex items-center gap-2 border border-white/10 text-white/40 px-4 py-2 font-mono text-[9px] uppercase hover:border-red-500 hover:text-red-500 transition-all active:scale-95"
         >
           <LogOut size={14} /> LOGOUT
+        </button>
+      </div>
+
+      <div className="mb-8 bg-black/20 border border-tactical-amber/30 p-5 sm:p-6 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="hud-label text-tactical-amber mb-1">MID_SIDE_MIXING</div>
+          <p className="font-mono text-[11px] text-army-light uppercase tracking-widest">
+            Open the mixing subscriber / mix-request dashboard
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/mixing/admin')}
+          className="flex items-center justify-center gap-2 border border-tactical-amber/40 text-tactical-amber px-4 py-2 font-mono text-[9px] uppercase hover:bg-tactical-amber hover:text-army-dark transition-all"
+        >
+          OPEN_MIXING_ADMIN
         </button>
       </div>
 

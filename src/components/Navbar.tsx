@@ -117,6 +117,13 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
+            <Link
+              to="/mixing"
+              className={`nav-link cursor-pointer ${location.pathname.startsWith('/mixing') ? '!text-tactical-amber' : ''}`}
+            >
+              <span className="text-[9px] lg:text-[10px] text-tactical-amber mr-1">03</span> MIXING
+            </Link>
+
             <Link 
               to="/trivia" 
               className="bg-tactical-amber/5 border border-tactical-amber/20 text-tactical-amber hover:bg-tactical-amber hover:text-white transition-all active:scale-95 md:px-2 lg:px-4 py-2 font-mono text-[9px] lg:text-[10px] font-bold uppercase tracking-widest whitespace-nowrap hover:border-tactical-amber shadow-sm"
@@ -196,6 +203,13 @@ export default function Navbar() {
                 className={`flex items-center gap-4 text-xl font-mono uppercase transition-colors ${location.pathname === '/trivia' ? 'text-tactical-amber' : 'text-tactical-cyan'}`}
               >
                 <div className="w-2 h-2 bg-tactical-amber rotate-45"></div> Play Trivia
+              </Link>
+              <Link
+                to="/mixing"
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center gap-4 text-xl font-mono uppercase transition-colors ${location.pathname.startsWith('/mixing') ? 'text-tactical-amber' : 'text-tactical-cyan'}`}
+              >
+                <div className="w-2 h-2 bg-tactical-amber rotate-45"></div> Mixing Services
               </Link>
             </div>
 
