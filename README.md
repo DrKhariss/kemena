@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://kemenamusic.com" />
+<img width="1200" height="475" alt="GHBanner" src="https://kemenamusic.png" />
 </div>
 
 # Kemena Army
