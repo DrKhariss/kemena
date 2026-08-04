@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, Loader2, LogIn, LogOut, Shield, AlertTriangle, Image as ImageIcon, FileText, Music, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
 import { 
   doc, 
   onSnapshot, 
@@ -11,7 +10,6 @@ import {
 } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, User, updatePassword } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
-import { login as mixingLogin } from '../mixing/lib/api.js';
 import Odoo from '../assets/Odoo.jpg';
 
 const ADMIN_EMAILS = ['chukwuebukankemena@gmail.com', 'realkemena@gmail.com', 'management@kemenamusic.com'];
@@ -23,7 +21,6 @@ interface ConfigData {
 }
 
 export default function AdminConsole() {
-  const navigate = useNavigate();
   const [config, setConfig] = useState<ConfigData>({
     heroImageUrl: '',
     bioText: '',
@@ -39,7 +36,6 @@ export default function AdminConsole() {
   const [newPassword, setNewPassword] = useState('');
   const [credMessage, setCredMessage] = useState('');
   const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
@@ -51,13 +47,9 @@ export default function AdminConsole() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         
-        let fetchedBioText = '';
-        
-        let fetchedHeroImage = '';
-
         setConfig({
-          heroImageUrl: fetchedHeroImage,
-          bioText: fetchedBioText,
+          heroImageUrl: data.heroImageUrl || '',
+          bioText: data.bioText || '',
           battleMusicUrl: data.battleMusicUrl || '',
         });
       }
@@ -67,19 +59,7 @@ export default function AdminConsole() {
       setLoading(false);
     });
 
-    // Auto-clear firestore on load if signed in as admin
-    const clearData = async () => {
-      if (auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email || '')) {
-        try {
-          await setDoc(docRef, {
-            heroImageUrl: "",
-            bioText: "",
-            battleMusicUrl: "", // We might accidentally clear this if it hasn't loaded, so let's just use updateDoc or setDoc with merge.
-          }, { merge: true });
-        } catch(e) {}
-      }
-    };
-    clearData();
+    // Removed auto-clear logic for firestore
 
     return () => {
       unsubscribeAuth();
@@ -88,31 +68,9 @@ export default function AdminConsole() {
   }, []);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setMessage('ERROR: EMAIL_AND_PASSWORD_REQUIRED');
-      return;
-    }
-
-    setAuthBusy(true);
-    setMessage('');
-
+    const cleanEmail = email.trim().toLowerCase();
     try {
-      // Mid-Side mixing admin (SQLite/JWT) — same console entry for /admin
-      const mixing = await mixingLogin(email, password);
-      if (mixing.user?.role === 'admin') {
-        navigate('/mixing/admin');
-        return;
-      }
-      if (mixing.user) {
-        navigate('/mixing/account');
-        return;
-      }
-    } catch {
-      // Not a mixing account — fall through to Firebase site console auth
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, cleanEmail, password);
     } catch (err: any) {
       const isNotFoundOrInvalid = err.code === 'auth/user-not-found' || 
                                   err.code === 'auth/invalid-credential' || 
@@ -122,10 +80,10 @@ export default function AdminConsole() {
          setMessage('ERROR: EMAIL_AUTH_DISABLED_IN_FIREBASE');
       } else if (err.code === 'auth/too-many-requests') {
          setMessage('ERROR: TOO_MANY_FAILED_ATTEMPTS_PLEASE_WAIT');
-      } else if (isNotFoundOrInvalid && ADMIN_EMAILS.includes(email)) {
+      } else if (isNotFoundOrInvalid && ADMIN_EMAILS.includes(cleanEmail)) {
          if (password === 'kemenaconsole123') {
            try {
-             await createUserWithEmailAndPassword(auth, email, password);
+             await createUserWithEmailAndPassword(auth, cleanEmail, password);
            } catch (createErr: any) {
              console.error(createErr);
              if (createErr.code === 'auth/email-already-in-use') {
@@ -141,10 +99,8 @@ export default function AdminConsole() {
          setMessage('ERROR: INVALID_CREDENTIALS');
       } else {
         console.error(err);
-        setMessage('ERROR: LOGIN_FAILED');
+        setMessage('ERROR: LOGIN_FAILED - ' + err.message);
       }
-    } finally {
-      setAuthBusy(false);
     }
   };
 
@@ -192,7 +148,7 @@ export default function AdminConsole() {
   };
 
   const handleSave = async () => {
-    if (!user || !ADMIN_EMAILS.includes(user.email || '')) {
+    if (!user || !ADMIN_EMAILS.includes((user.email || '').toLowerCase())) {
       setMessage('ERROR: INSUFFICIENT_PERMISSIONS');
       return;
     }
@@ -209,8 +165,8 @@ export default function AdminConsole() {
     
     try {
       await setDoc(doc(db, 'config', 'mainPage'), {
-        heroImageUrl: "",
-        bioText: "",
+        heroImageUrl: config.heroImageUrl,
+        bioText: config.bioText,
         battleMusicUrl: config.battleMusicUrl,
         updatedAt: serverTimestamp()
       });
@@ -232,7 +188,7 @@ export default function AdminConsole() {
     </div>
   );
 
-  if (!user || !ADMIN_EMAILS.includes(user.email || '')) {
+  if (!user || !ADMIN_EMAILS.includes((user.email || '').toLowerCase())) {
     return (
       <div className="w-full max-w-4xl mx-auto py-8 sm:py-24 px-4 text-center">
         <motion.div 
@@ -246,8 +202,6 @@ export default function AdminConsole() {
           </h1>
           <p className="font-mono text-[10px] sm:text-[11px] text-army-light uppercase tracking-widest mb-8 px-2">
             Signal restricted to #KEMENA_HIGH_COMMAND authorized relay nodes only.
-            <br />
-            Mid-Side mixing admin credentials open the mixing dashboard.
           </p>
           <div className="w-full max-w-sm mx-auto flex flex-col gap-4 mb-8">
             <input 
@@ -255,7 +209,7 @@ export default function AdminConsole() {
               placeholder="email" 
               value={email}
               onChange={(e) => setUsername(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !authBusy && handleLogin()}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               className="w-full bg-white/5 border border-white/10 px-4 py-3 font-mono text-[11px] text-tactical-cyan focus:outline-none focus:border-tactical-amber text-center"
             />
             <div className="relative">
@@ -264,7 +218,7 @@ export default function AdminConsole() {
                 placeholder="Password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !authBusy && handleLogin()}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full bg-white/5 border border-white/10 px-4 py-3 font-mono text-[11px] text-tactical-cyan focus:outline-none focus:border-tactical-amber text-center pr-10"
               />
               <button 
@@ -278,11 +232,9 @@ export default function AdminConsole() {
           </div>
           <button 
             onClick={handleLogin}
-            disabled={authBusy}
-            className="flex items-center justify-center gap-3 bg-tactical-cyan text-army-dark px-4 sm:px-8 py-3 mx-auto font-mono text-[11px] uppercase font-bold hover:bg-tactical-amber hover:text-white transition-all active:scale-95 w-full max-w-sm disabled:opacity-60"
+            className="flex items-center justify-center gap-3 bg-tactical-cyan text-army-dark px-4 sm:px-8 py-3 mx-auto font-mono text-[11px] uppercase font-bold hover:bg-tactical-amber hover:text-white transition-all active:scale-95 w-full max-w-sm"
           >
-            {authBusy ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />}
-            {authBusy ? 'AUTHENTICATING…' : 'AUTHENTICATE_OPERATOR'}
+            <LogIn size={18} /> AUTHENTICATE_OPERATOR
           </button>
           
           {user && (
@@ -323,33 +275,67 @@ export default function AdminConsole() {
         </button>
       </div>
 
-      <div className="mb-8 bg-black/20 border border-tactical-amber/30 p-5 sm:p-6 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="hud-label text-tactical-amber mb-1">MID_SIDE_MIXING</div>
-          <p className="font-mono text-[11px] text-army-light uppercase tracking-widest">
-            Open the mixing subscriber / mix-request dashboard
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate('/mixing/admin')}
-          className="flex items-center justify-center gap-2 border border-tactical-amber/40 text-tactical-amber px-4 py-2 font-mono text-[9px] uppercase hover:bg-tactical-amber hover:text-army-dark transition-all"
-        >
-          OPEN_MIXING_ADMIN
-        </button>
-      </div>
-
       <div className="grid grid-cols-1 gap-8">
         
-        {/* Image & Bio Config Note */}
+        {/* Image Section */}
         <div className="bg-black/20 border border-white/5 p-5 sm:p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-8">
             <ImageIcon size={20} className="text-tactical-cyan" />
-            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">HERO_IMAGE & BIO CONFIG</h2>
+            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">HERO_IMAGE_CONFIG</h2>
           </div>
 
-          <div className="text-tactical-amber font-mono text-[11px] mb-4 uppercase tracking-widest bg-tactical-amber/10 border border-tactical-amber/20 p-4">
-            [NOTICE] The hero image and biography text are currently configured to load locally from the codebase (src/components/Home.tsx) for optimal high-resolution performance, circumventing Firestore's 1MB document limit for large imagery. To change them, update the code directly.
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
+            <div className="w-full sm:w-48 h-48 sm:h-64 bg-white/5 border border-white/10 overflow-hidden relative group shrink-0">
+              {config.heroImageUrl ? (
+                <img src={config.heroImageUrl || undefined} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/10 italic font-mono text-[10px]">NO_IMAGE</div>
+              )}
+            </div>
+            
+            <div className="flex-1 space-y-4">
+              <div className="hud-label">Source Selection</div>
+              <input 
+                type="text" 
+                value={config.heroImageUrl}
+                onChange={(e) => setConfig({ ...config, heroImageUrl: e.target.value })}
+                placeholder="ENTER_IMAGE_URL_OR_UPLOAD_BELOW..."
+                className="w-full bg-white/5 border border-white/10 px-4 py-3 font-mono text-[11px] text-tactical-cyan focus:outline-none focus:border-tactical-amber transition-colors"
+              />
+              <div className="flex flex-col gap-2">
+                 <label className="btn-primary !w-auto flex items-center justify-center gap-2 py-2 cursor-pointer text-[10px]">
+                   <ImageIcon size={14} /> UPLOAD_LOCAL_FILE
+                   <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                 </label>
+                 <p className="font-mono text-[8px] text-army-light uppercase">Max size: 800KB (Encoded for Firestore limits)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bio Text Section */}
+        <div className="bg-black/20 border border-white/5 p-5 sm:p-8 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-8">
+            <FileText size={20} className="text-tactical-cyan" />
+            <h2 className="font-mono text-xs uppercase font-bold tracking-widest text-tactical-cyan">BIOGRAPHY_DATA_STREAM</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-end">
+              <div className="hud-label">TEXT_PAYLOAD (MAX 250 WORDS)</div>
+              <div className="font-mono text-[10px] text-army-light">
+                WORDS: <span className={config.bioText.trim().split(/\s+/).filter(Boolean).length > 250 ? 'text-red-500' : 'text-tactical-cyan'}>
+                  {config.bioText.trim().split(/\s+/).filter(Boolean).length}
+                </span> / 250
+              </div>
+            </div>
+            <textarea 
+              value={config.bioText}
+              onChange={(e) => setConfig({ ...config, bioText: e.target.value })}
+              rows={8}
+              placeholder="ENTER_ARTIST_BIOGRAPHY_HERE..."
+              className="w-full bg-white/5 border border-white/10 px-6 py-4 font-mono text-[13px] leading-relaxed text-tactical-cyan focus:outline-none focus:border-tactical-amber transition-colors resize-none"
+            />
           </div>
         </div>
 
