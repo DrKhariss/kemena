@@ -1,3 +1,7 @@
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://kemenamusic.com" />
+</div>
+
 # Kemena Army
 
 A polished fan experience portal for Kemena, combining immersive UI, trivia engagement, leaderboard tracking, and Firebase-backed content management.
