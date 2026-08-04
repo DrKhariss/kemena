@@ -92,6 +92,7 @@ export default function Home() {
     { name: 'Lies', url: 'https://open.spotify.com/album/7bWaK0w7tIwuglQcwPZrDd?si=Kff-6HG3RRKmwnmt92XTiw', img: lies },
     { name: 'B.O.N.D (Live)', url: 'https://open.spotify.com/album/6MfWQXjxTe0FDucGn9EYlZ?si=Tvgx8yMNR--HMINNzXEONw', img: live },
     { name: 'Whole Wide World', url: 'https://open.spotify.com/album/0mSSk7aHR5HxPaxIqG3seq?si=7h8TD6WgTHCx3QFDiY1VmA', img: www },
+    { name: 'Oodo', url: 'https://open.spotify.com/album/5cB8ffz2momEorbk12ZpDV?si=TZSG9lhkTt-ytfhC-pqFPg', img: Odoo },
   ];
 
   const handleShare = async () => {
@@ -347,10 +348,10 @@ export default function Home() {
     const unsubscribeConfig = onSnapshot(doc(db, 'config', 'mainPage'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as ConfigData;
-        // We preserve the locally set heroImageUrl and bioText from the initial state
-        // so that the user can change the picture and bio in code without the database overriding it.
         setConfig(prev => ({
           ...prev,
+          heroImageUrl: data.heroImageUrl || prev.heroImageUrl,
+          bioText: data.bioText || prev.bioText,
           battleMusicUrl: data.battleMusicUrl || prev.battleMusicUrl
         }));
       }
