@@ -133,16 +133,46 @@ export default function AdminConsole() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 800000) { // ~800KB limit for base64 in Firestore (1MB doc limit)
-      setMessage('ERROR: FILE_TOO_LARGE_MAX_800KB');
-      return;
-    }
-
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setConfig({ ...config, heroImageUrl: reader.result as string });
-      setMessage('IMAGE_STAGED_FOR_UPLOAD');
-      setTimeout(() => setMessage(''), 3000);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        
+        if (dataUrl.length > 800000) {
+           setMessage('ERROR: FILE_STILL_TOO_LARGE_AFTER_COMPRESSION');
+           return;
+        }
+
+        setConfig({ ...config, heroImageUrl: dataUrl });
+        setMessage('IMAGE_STAGED_FOR_UPLOAD');
+        setTimeout(() => setMessage(''), 3000);
+      };
+      img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
   };
@@ -307,7 +337,7 @@ export default function AdminConsole() {
                    <ImageIcon size={14} /> UPLOAD_LOCAL_FILE
                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                  </label>
-                 <p className="font-mono text-[8px] text-army-light uppercase">Max size: 800KB (Encoded for Firestore limits)</p>
+                 <p className="font-mono text-[8px] text-army-light uppercase">Images will be automatically compressed for optimal loading.</p>
               </div>
             </div>
           </div>
