@@ -163,7 +163,7 @@ export default function AdminConsole() {
 
         const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
         
-        if (dataUrl.length > 800000) {
+        if (dataUrl.length > 1048000) {
            setMessage('ERROR: FILE_STILL_TOO_LARGE_AFTER_COMPRESSION');
            return;
         }
