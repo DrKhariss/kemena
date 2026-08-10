@@ -9,7 +9,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, User, updatePassword } from 'firebase/auth';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import Odoo from '../assets/Odoo.jpg';
 
 const ADMIN_EMAILS = ['chukwuebukankemena@gmail.com', 'realkemena@gmail.com', 'management@kemenamusic.com'];
@@ -206,6 +206,12 @@ export default function AdminConsole() {
     } catch (err) {
       console.error(err);
       setMessage('ERROR: SYNC_FAILURE');
+      try {
+        handleFirestoreError(err, OperationType.WRITE, 'config/mainPage');
+      } catch (e) {
+        // Re-throw so standard handlers receive error
+        throw e;
+      }
     } finally {
       setSaving(false);
     }
