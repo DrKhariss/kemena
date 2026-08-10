@@ -5,7 +5,7 @@ import { Share2, Trophy, ArrowRight, Loader2, Send, Twitter, Facebook, Instagram
 import { toBlob } from 'html-to-image';
 import Select from 'react-select';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { TRIVIA_QUESTIONS, getRankData, Question } from '../constants';
 import SalutKemena from './SalutKemena';
 
@@ -56,6 +56,7 @@ function FanForm({ username }: { username: string }) {
       setIsSuccess(true);
     } catch (err) {
       console.error("Error saving fan info:", err);
+      handleFirestoreError(err, OperationType.CREATE, 'fans');
     } finally {
       setIsSubmitting(false);
     }
@@ -306,6 +307,7 @@ export default function Trivia({ username }: TriviaProps) {
         const docRef = querySnapshot.docs[0].ref;
         await updateDoc(docRef, {
           username: username,
+          username_lowercase: username.toLowerCase(),
           score,
           rank: rankData.rank,
           remark: rankData.remark,
@@ -324,6 +326,7 @@ export default function Trivia({ username }: TriviaProps) {
       }
     } catch (error) {
       console.error("Failed to save to leaderboard:", error);
+      handleFirestoreError(error, OperationType.WRITE, 'leaderboard');
     }
 
     setIsSubmitting(false);
