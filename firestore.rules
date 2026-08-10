@@ -9,7 +9,7 @@ service cloud.firestore {
     function isEmailVerified() { return request.auth.token.email_verified == true; }
     function isAdmin() { 
       return isSignedIn() && 
-             (request.auth.token.email == 'chukwuebukankemena@gmail.com' || request.auth.token.email == 'admin@kemena.com' || request.auth.token.email == 'console@kemena.com'); 
+             (request.auth.token.email == 'chukwuebukankemena@gmail.com' || request.auth.token.email == 'realkemena@kemena.com'); 
     }
 
     function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
