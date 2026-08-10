@@ -20,7 +20,10 @@ service cloud.firestore {
       return isSignedIn() &&
              (
                request.auth.token.email == 'chukwuebukankemena@gmail.com' ||
-               request.auth.token.email == 'realkemena@gmail.com'
+               request.auth.token.email == 'realkemena@gmail.com' ||
+               request.auth.token.email == 'management@kemenamusic.com' ||
+               request.auth.token.email == 'admin@kemena.com' ||
+               request.auth.token.email == 'console@kemena.com'
              );
     }
 
@@ -52,8 +55,9 @@ service cloud.firestore {
              ]) &&
              data.keys().size() == 4 &&
              data.heroImageUrl is string &&
+             data.heroImageUrl.size() <= 2000000 &&
              data.bioText is string &&
-             data.bioText.size() <= 2000 &&
+             data.bioText.size() <= 10000 &&
              data.battleMusicUrl is string &&
              data.battleMusicUrl.size() <= 2000 &&
              data.updatedAt is timestamp;
@@ -93,7 +97,9 @@ service cloud.firestore {
              ]) &&
              data.keys().size() == 3 &&
              data.name is string &&
+             data.name.size() <= 128 &&
              data.imageUrl is string &&
+             data.imageUrl.size() <= 2000 &&
              data.order is number;
     }
 
@@ -116,13 +122,12 @@ service cloud.firestore {
              ]) &&
              data.keys().size() == 3 &&
              data.text is string &&
-             data.text.size() <= 256 &&
+             data.text.size() <= 500 &&
              data.createdAt is timestamp &&
              data.updatedAt is timestamp;
     }
 
     match /news/{newsId} {
-
       allow read: if true;
 
       allow create: if isAdmin() &&
@@ -157,17 +162,20 @@ service cloud.firestore {
              ]) &&
              data.keys().size() == 6 &&
              data.username is string &&
-             data.username.size() <= 32 &&
+             data.username.size() <= 64 &&
              data.username_lowercase is string &&
-             data.username_lowercase.size() <= 32 &&
+             data.username_lowercase.size() <= 64 &&
              data.score is number &&
+             data.score >= 0 &&
+             data.score <= 100 &&
              data.rank is string &&
+             data.rank.size() <= 64 &&
              data.remark is string &&
+             data.remark.size() <= 256 &&
              data.timestamp is timestamp;
     }
 
     match /leaderboard/{entryId} {
-
       allow read: if true;
 
       allow create: if isValidLeaderboardEntry(incoming()) &&
@@ -179,6 +187,37 @@ service cloud.firestore {
                        incoming().timestamp == request.time;
 
       allow delete: if isAdmin();
+    }
+
+
+    // =========================
+    // FANS (RECONNAISSANCE PROTOCOL)
+    // =========================
+
+    function isValidFan(data) {
+      return data.keys().hasAll([
+               'name',
+               'email',
+               'phoneNumber',
+               'country',
+               'socialHandle',
+               'dob',
+               'timestamp'
+             ]) &&
+             data.keys().size() == 7 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.email is string && data.email.size() <= 128 &&
+             data.phoneNumber is string && data.phoneNumber.size() <= 64 &&
+             data.country is string && data.country.size() <= 128 &&
+               data.socialHandle is string && data.socialHandle.size() <= 128 &&
+             data.dob is string && data.dob.size() <= 64 &&
+             data.timestamp is timestamp;
+    }
+
+    match /fans/{fanId} {
+      allow read: if isAdmin();
+      allow create: if isValidFan(incoming()) && incoming().timestamp == request.time;
+      allow update, delete: if isAdmin();
     }
 
 
