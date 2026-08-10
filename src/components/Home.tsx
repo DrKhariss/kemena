@@ -45,6 +45,7 @@ import 'swiper/css/navigation';
 interface ConfigData {
   heroImageUrl: string;
   bioText: string;
+  battleMusicUrl?: string;
 }
 
 interface Artist {
