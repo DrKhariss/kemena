@@ -1,0 +1,11 @@
+# SPA fallback for Hostinger (Apache / LiteSpeed).
+# Without this, hard loads like /mixing or /trivia 404 because no file exists
+# on disk — only client-side React Router knows those paths.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
