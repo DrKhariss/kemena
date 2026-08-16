@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MixingLayout from "./components/MixingLayout.jsx";
-import { RequireAuth } from "./components/RequireAuth.jsx";
+import { RedirectIfAuthed, RequireAuth } from "./components/RequireAuth.jsx";
 import { AuthProvider } from "./hooks/useAuth.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
@@ -34,8 +34,22 @@ export default function MixingRoutes() {
     <AuthProvider>
       <Routes>
         <Route element={<MixingLayout />}>
-          <Route index element={<SignupPage />} />
-          <Route path="login" element={<LoginPage />} />
+          <Route
+            index
+            element={
+              <RedirectIfAuthed>
+                <SignupPage />
+              </RedirectIfAuthed>
+            }
+          />
+          <Route
+            path="login"
+            element={
+              <RedirectIfAuthed>
+                <LoginPage />
+              </RedirectIfAuthed>
+            }
+          />
           <Route path="setup-password" element={<SetupPasswordPage />} />
           <Route
             path="account"

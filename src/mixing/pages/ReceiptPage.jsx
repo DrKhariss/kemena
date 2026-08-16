@@ -83,8 +83,17 @@ export default function ReceiptPage() {
           <h3 className="mb-3 font-mono text-xs uppercase tracking-widest text-white">Next steps</h3>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              Create a password, then open your <strong className="text-white">account</strong> to submit mixes
-              in-app with a stem link.
+              {receipt.hasPassword ? (
+                <>
+                  Open your <strong className="text-white">account</strong> to submit mixes in-app with a stem
+                  link.
+                </>
+              ) : (
+                <>
+                  <strong className="text-white">Create a password</strong> next — you need it before you can
+                  open your account and submit mixes.
+                </>
+              )}
             </li>
             <li>
               Include receipt code <strong className="text-white">{receipt.receiptCode}</strong> if you email
@@ -114,15 +123,16 @@ export default function ReceiptPage() {
             <span>Create account password</span>
           </Link>
         ) : (
-          <Link to="/mixing/login" className="btn-primary max-w-xs text-center no-underline">
-            <span>Log in to your account</span>
-          </Link>
+          <>
+            <Link to="/mixing/login" className="btn-primary max-w-xs text-center no-underline">
+              <span>Log in to your account</span>
+            </Link>
+            <Link to="/mixing/account" className="btn-primary max-w-xs text-center no-underline">
+              <span>Go to account</span>
+            </Link>
+          </>
         )}
-        <Link to="/mixing/account" className="btn-primary max-w-xs text-center no-underline">
-          <span>Go to account</span>
-        </Link>
       </div>
-
       <button type="button" className="btn-primary no-print mx-auto max-w-xs" onClick={() => window.print()}>
         <span>Print receipt</span>
       </button>
