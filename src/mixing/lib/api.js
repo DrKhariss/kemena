@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? "/mixing/api";
+const API_BASE = `${String(import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "")}/mixing/api`;
 
 async function request(path, { method = "GET", body } = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
