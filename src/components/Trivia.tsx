@@ -8,6 +8,12 @@ import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc }
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { TRIVIA_QUESTIONS, getRankData, Question } from '../constants';
 import SalutKemena from './SalutKemena';
+import trivia1 from '../assets/trivia-1.jpg';
+import trivia2 from '../assets/trivia-2.jpg';
+import trivia3 from '../assets/trivia-3.jpg';
+import trivia4 from '../assets/trivia-4.jpg';
+
+const triviaImages = [trivia1, trivia2, trivia3, trivia4];
 
 const COUNTRIES = [
   { value: 'Nigeria', label: 'Nigeria' },
@@ -511,22 +517,27 @@ export default function Trivia({ username }: TriviaProps) {
         </div>
 
         {/* Tactical Image Column (Sticky Orchestrator) */}
-        <aside className="hidden sm:flex sm:w-48 md:w-[300px] lg:w-[500px] sticky top-10 sm:top-24 flex flex-col gap-4 sm:gap-6 shrink-0">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="card-container !p-1 bg-black/5 border border-black/10 overflow-hidden group">
-              <img 
-                src={`/src/assets/trivia-${i}.jpg`} 
-                alt={`Tactical Intel ${i}`}
-                className="w-full aspect-square object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
-                referrerPolicy="no-referrer"
-              />
-              <div className="mt-1 flex justify-between px-1">
-                <div className="h-1 w-6 sm:w-8 bg-tactical-amber/30 group-hover:bg-tactical-amber transition-colors" />
-                <span className="font-mono text-[5px] sm:text-[6px] text-army-light/40 group-hover:text-army-light transition-colors">INTEL_0{i}</span>
-              </div>
-            </div>
-          ))}
-        </aside>
+<aside className="hidden sm:flex sm:w-48 md:w-[300px] lg:w-[500px] sticky top-10 sm:top-24 flex flex-col gap-4 sm:gap-6 shrink-0">
+  {triviaImages.map((image, i) => (
+    <div
+      key={i}
+      className="card-container !p-1 bg-black/5 border border-black/10 overflow-hidden group"
+    >
+      <img
+        src={image}
+        alt={`Tactical Intel ${i + 1}`}
+        className="w-full aspect-square object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+      />
+
+      <div className="mt-1 flex justify-between px-1">
+        <div className="h-1 w-6 sm:w-8 bg-tactical-amber/30 group-hover:bg-tactical-amber transition-colors" />
+        <span className="font-mono text-[5px] sm:text-[6px] text-army-light/40 group-hover:text-army-light transition-colors">
+          INTEL_0{i + 1}
+        </span>
+      </div>
+    </div>
+  ))}
+</aside>
       </div>
 
       <div className="flex justify-center mb-16 sm:mb-24">
