@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signupUser } from "../lib/api.js";
 import { saveSession } from "../lib/subscription.js";
+import { youtubeEmbedSrc } from "../lib/youtube.js";
+
+const INTRO_EMBED = youtubeEmbedSrc(import.meta.env.VITE_MIXING_INTRO_YOUTUBE_URL || "");
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -49,6 +52,25 @@ export default function SignupPage() {
         </p>
       </div>
 
+      {INTRO_EMBED && (
+        <div className="w-full">
+          <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-white/10 bg-black">
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src={INTRO_EMBED}
+              title="Mid-Side Audio — watch before you sign up"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
+          <p className="mt-3 text-center text-xs text-army-light sm:text-sm">
+            Watch this short explainer before you sign up.
+          </p>
+        </div>
+      )}
+
       <div className="card-container mx-auto w-full">
         <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
           <label className="flex flex-col gap-2">
@@ -71,11 +93,14 @@ export default function SignupPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Stems must be sent from this email"
+              placeholder="We'll use this for your account"
               autoComplete="email"
               required
             />
-            <span className="text-xs text-army-light">All mixing stems must be sent from this same email.</span>
+            <span className="text-xs text-army-light">
+              Use this email for login. After you subscribe, submit stem links from your account
+              dashboard.
+            </span>
           </label>
 
           {error && <p className="error-text">{error}</p>}

@@ -41,7 +41,7 @@ export default function MixingLayout() {
             ← Back to Kemena
           </Link>
           <Link to="/mixing" className="logo-text">
-            Mid-Side Ent
+            Mid-Side Audio
           </Link>
         </div>
         <div className="flex flex-col items-end gap-3">

@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
         <div className="admin-hero__grid" aria-hidden="true" />
         <div className="admin-hero__copy">
           <p className="admin-kicker">
-            <span className="admin-live" /> Mid-Side · Session desk
+            <span className="admin-live" /> Mid-Side Audio · Session desk
           </p>
           <h1 className="admin-title">
             Control

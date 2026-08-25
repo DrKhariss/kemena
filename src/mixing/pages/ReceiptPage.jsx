@@ -4,6 +4,8 @@ import { fetchReceipt } from "../lib/api.js";
 import { formatNgn } from "../lib/subscription.js";
 
 const LEAD_PHONE = import.meta.env.VITE_LEAD_ENGINEER_PHONE || "+234 800 000 0000";
+const WHATSAPP_DIGITS = String(import.meta.env.VITE_WHATSAPP_NUMBER || "").replace(/\D/g, "");
+const WHATSAPP_HREF = WHATSAPP_DIGITS ? `https://wa.me/${WHATSAPP_DIGITS}` : null;
 const STEMS_EMAIL = import.meta.env.VITE_STEMS_EMAIL || "stems@example.com";
 
 export default function ReceiptPage() {
@@ -96,8 +98,10 @@ export default function ReceiptPage() {
               )}
             </li>
             <li>
-              Include receipt code <strong className="text-white">{receipt.receiptCode}</strong> if you email
-              anything to <strong className="text-white">{STEMS_EMAIL}</strong>.
+              Submit mixes from your account with a Drive / Dropbox / WeTransfer stem link. Include
+              receipt code <strong className="text-white">{receipt.receiptCode}</strong> in the request
+              notes if helpful. Optional support email:{" "}
+              <strong className="text-white">{STEMS_EMAIL}</strong>.
             </li>
             <li>Maximum of two revisions per mix.</li>
           </ul>
@@ -111,7 +115,19 @@ export default function ReceiptPage() {
         <a href={`tel:${LEAD_PHONE.replace(/\s/g, "")}`} className="phone-link mt-4">
           {LEAD_PHONE}
         </a>
-        <p className="mt-2 text-xs text-army-light">Lead Engineer · Mid-Side Ent</p>
+        {WHATSAPP_HREF && (
+          <div className="mt-5">
+            <a
+              href={WHATSAPP_HREF}
+              className="btn-primary mx-auto !w-auto px-6 no-underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Talk to Kemena</span>
+            </a>
+          </div>
+        )}
+        <p className="mt-2 text-xs text-army-light">Lead Engineer · Mid-Side Audio</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
