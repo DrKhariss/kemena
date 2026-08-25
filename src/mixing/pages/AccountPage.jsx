@@ -5,6 +5,8 @@ import { useAuth } from "../hooks/useAuth.jsx";
 import { formatNgn } from "../lib/subscription.js";
 
 const LEAD_PHONE = import.meta.env.VITE_LEAD_ENGINEER_PHONE || "+234 800 000 0000";
+const WHATSAPP_DIGITS = String(import.meta.env.VITE_WHATSAPP_NUMBER || "").replace(/\D/g, "");
+const WHATSAPP_HREF = WHATSAPP_DIGITS ? `https://wa.me/${WHATSAPP_DIGITS}` : null;
 
 const STATUS_STEPS = ["submitted", "in_progress", "revision", "delivered"];
 
@@ -259,7 +261,19 @@ export default function AccountPage() {
                 <a href={`tel:${LEAD_PHONE.replace(/\s/g, "")}`} className="phone-link mt-4">
                   {LEAD_PHONE}
                 </a>
-                <p className="mt-2 text-xs text-army-light">Mid-Side Ent · Mixing & mastering</p>
+                {WHATSAPP_HREF && (
+                  <div className="mt-5">
+                    <a
+                      href={WHATSAPP_HREF}
+                      className="btn-primary mx-auto !w-auto px-6 no-underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span>Talk to Kemena</span>
+                    </a>
+                  </div>
+                )}
+                <p className="mt-2 text-xs text-army-light">Mid-Side Audio · Mixing & mastering</p>
               </section>
             </div>
           )}
@@ -374,7 +388,7 @@ export default function AccountPage() {
                         ? "Saving…"
                         : editingId
                           ? "Save mix updates"
-                          : "Submit mix to Mid-Side"}
+                          : "Submit mix to Mid-Side Audio"}
                     </span>
                   </button>
                 </form>
