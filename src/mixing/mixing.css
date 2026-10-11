@@ -1006,6 +1006,182 @@
   cursor: pointer;
 }
 
+.admin-text-btn--danger {
+  color: #f87171;
+}
+
+.admin-notice {
+  margin: 0 1.25rem 0.75rem;
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.admin-search input {
+  min-width: min(100%, 18rem);
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-army-light);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-toggle {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+}
+
+.admin-roster__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 700px) {
+  .admin-roster__card {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .admin-roster__actions {
+    grid-column: 2 / -1;
+  }
+}
+
+.admin-roster__card.is-deleted {
+  opacity: 0.65;
+}
+
+.admin-roster__meta .is-deleted-badge {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.admin-track-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: end;
+  margin: 0.65rem 0;
+}
+
+.admin-track-edit label {
+  display: grid;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+}
+
+.admin-track-edit input {
+  width: 5.5rem;
+  padding: 0.4rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-army-light);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.admin-confirm__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.admin-confirm__panel {
+  position: relative;
+  width: min(100%, 24rem);
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #121816;
+  color: var(--color-army-light);
+}
+
+.admin-confirm__panel h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-army);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  color: var(--color-tactical-cyan);
+}
+
+.admin-confirm__panel p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.admin-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.admin-confirm__ok {
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0b1210;
+  background: var(--color-tactical-amber);
+  border: none;
+  cursor: pointer;
+}
+
+.admin-confirm__ok.is-danger {
+  background: #f87171;
+}
+
+.admin-confirm__ok:disabled,
+.admin-text-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .admin-board {
   display: grid;
   gap: 0.65rem;
@@ -1171,12 +1347,6 @@
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.24);
-}
-
-@media (min-width: 700px) {
-  .admin-roster__card {
-    grid-template-columns: auto 1fr auto;
-  }
 }
 
 .admin-avatar {

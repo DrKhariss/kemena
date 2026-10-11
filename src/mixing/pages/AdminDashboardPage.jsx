@@ -4,6 +4,9 @@ import {
   fetchAdminStats,
   fetchAdminSubscribers,
   fetchAdminSubscriptions,
+  restoreAdminSubscriber,
+  sendAdminPasswordReset,
+  softDeleteAdminSubscriber,
   updateAdminMixRequest,
   updateAdminSubscription,
 } from "../lib/api.js";
@@ -75,6 +78,31 @@ function QueueBoard({ mixRequests, onOpen }) {
   );
 }
 
+function ConfirmModal({ title, body, confirmLabel, danger, busy, onConfirm, onCancel }) {
+  return (
+    <div className="admin-confirm" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title">
+      <div className="admin-confirm__backdrop" onClick={busy ? undefined : onCancel} />
+      <div className="admin-confirm__panel">
+        <h3 id="admin-confirm-title">{title}</h3>
+        <p>{body}</p>
+        <div className="admin-confirm__actions">
+          <button type="button" className="admin-text-btn" disabled={busy} onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`admin-confirm__ok ${danger ? "is-danger" : ""}`}
+            disabled={busy}
+            onClick={onConfirm}
+          >
+            {busy ? "Working…" : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboardPage() {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState(null);
@@ -82,17 +110,23 @@ export default function AdminDashboardPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [mixRequests, setMixRequests] = useState([]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("overview");
   const [mixFilter, setMixFilter] = useState("all");
   const [focusMixId, setFocusMixId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [clock, setClock] = useState(() => new Date());
+  const [artistQuery, setArtistQuery] = useState("");
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+  const [trackDrafts, setTrackDrafts] = useState({});
 
-  async function loadAll() {
+  async function loadAll(search = artistQuery) {
     try {
       const [statsData, subsData, subscrData, mixData] = await Promise.all([
         fetchAdminStats(),
-        fetchAdminSubscribers(),
+        fetchAdminSubscribers(search),
         fetchAdminSubscriptions(),
         fetchAdminMixRequests(),
       ]);
@@ -100,6 +134,18 @@ export default function AdminDashboardPage() {
       setSubscribers(subsData.subscribers);
       setSubscriptions(subscrData.subscriptions);
       setMixRequests(mixData.mixRequests);
+      setTrackDrafts((prev) => {
+        const next = { ...prev };
+        for (const row of subscrData.subscriptions) {
+          if (!next[row.id]) {
+            next[row.id] = {
+              used: String(row.tracks_used ?? 0),
+              allowed: row.tracks_allowed == null ? "" : String(row.tracks_allowed),
+            };
+          }
+        }
+        return next;
+      });
       setError("");
     } catch (err) {
       setError(err.message);
@@ -113,6 +159,14 @@ export default function AdminDashboardPage() {
     const tick = setInterval(() => setClock(new Date()), 30_000);
     return () => clearInterval(tick);
   }, []);
+
+  useEffect(() => {
+    if (tab !== "subscribers") return undefined;
+    const handle = setTimeout(() => {
+      loadAll(artistQuery);
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [artistQuery, tab]);
 
   async function handleMixStatus(id, { status, adminNotes, deliveryLink }) {
     try {
@@ -133,9 +187,108 @@ export default function AdminDashboardPage() {
     };
   }
 
+  function askConfirm(config) {
+    setConfirm(config);
+  }
+
+  async function runConfirm() {
+    if (!confirm?.action) return;
+    setConfirmBusy(true);
+    try {
+      await confirm.action();
+      setConfirm(null);
+      setError("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setConfirmBusy(false);
+    }
+  }
+
   async function handleSubStatus(id, status) {
-    await updateAdminSubscription(id, { status });
-    await loadAll();
+    const label = status === "expired" ? "expire" : "reactivate";
+    askConfirm({
+      title: status === "expired" ? "Mark plan expired?" : "Reactivate plan?",
+      body: `This will ${label} the subscription for the artist.`,
+      confirmLabel: status === "expired" ? "Mark expired" : "Reactivate",
+      danger: status === "expired",
+      action: async () => {
+        await updateAdminSubscription(id, { status });
+        await loadAll();
+        setNotice(status === "expired" ? "Plan marked expired." : "Plan reactivated.");
+      },
+    });
+  }
+
+  async function handleSoftDelete(row) {
+    askConfirm({
+      title: "Disable this artist?",
+      body: `${row.full_name} (${row.email}) will be soft-deleted. They can’t log in until restored.`,
+      confirmLabel: "Disable artist",
+      danger: true,
+      action: async () => {
+        await softDeleteAdminSubscriber(row.id);
+        await loadAll();
+        setNotice(`Disabled ${row.full_name}.`);
+      },
+    });
+  }
+
+  async function handleRestore(row) {
+    askConfirm({
+      title: "Restore this artist?",
+      body: `${row.full_name} will be able to sign in again.`,
+      confirmLabel: "Restore",
+      action: async () => {
+        await restoreAdminSubscriber(row.id);
+        await loadAll();
+        setNotice(`Restored ${row.full_name}.`);
+      },
+    });
+  }
+
+  async function handleSendReset(row) {
+    askConfirm({
+      title: "Send password reset?",
+      body: `Email a reset link to ${row.email}.`,
+      confirmLabel: "Send reset email",
+      action: async () => {
+        const result = await sendAdminPasswordReset(row.id);
+        setNotice(result.message || `Reset email queued for ${row.email}.`);
+      },
+    });
+  }
+
+  async function handleSaveTracks(row) {
+    const draft = trackDrafts[row.id] || {};
+    const usedRaw = draft.used;
+    const allowedRaw = draft.allowed;
+    const payload = {
+      tracks_used: Number(usedRaw),
+    };
+    if (allowedRaw === "" || allowedRaw == null) {
+      payload.tracks_allowed = null;
+    } else {
+      payload.tracks_allowed = Number(allowedRaw);
+    }
+
+    askConfirm({
+      title: "Update track allowance?",
+      body: `Set ${row.full_name}'s plan to ${payload.tracks_used} used / ${
+        payload.tracks_allowed == null ? "unlimited" : payload.tracks_allowed
+      } allowed.`,
+      confirmLabel: "Save tracks",
+      action: async () => {
+        await updateAdminSubscription(row.id, payload);
+        setTrackDrafts((prev) => {
+          const next = { ...prev };
+          delete next[row.id];
+          return next;
+        });
+        await loadAll();
+        setNotice("Track counts updated.");
+      },
+    });
   }
 
   const filteredMixes = useMemo(() => {
@@ -143,14 +296,21 @@ export default function AdminDashboardPage() {
     return mixRequests.filter((mix) => mix.status === mixFilter);
   }, [mixRequests, mixFilter]);
 
+  const visibleArtists = useMemo(() => {
+    if (showDeleted) return subscribers;
+    return subscribers.filter((row) => !row.deleted);
+  }, [subscribers, showDeleted]);
+
   const openJobs = mixRequests.filter((m) =>
     ["submitted", "in_progress", "revision"].includes(m.status),
   ).length;
 
+  const activeArtistCount = subscribers.filter((row) => !row.deleted).length;
+
   const tabs = [
     ["overview", "Desk", stats ? String(openJobs) : "—"],
     ["mixes", "Sessions", String(mixRequests.length)],
-    ["subscribers", "Artists", String(subscribers.length)],
+    ["subscribers", "Artists", String(activeArtistCount)],
     ["subscriptions", "Plans", String(subscriptions.length)],
   ];
 
@@ -212,7 +372,26 @@ export default function AdminDashboardPage() {
       </nav>
 
       {error && <p className="error-text">{error}</p>}
+      {notice && (
+        <p className="admin-notice">
+          {notice}{" "}
+          <button type="button" className="admin-text-btn" onClick={() => setNotice("")}>
+            Dismiss
+          </button>
+        </p>
+      )}
       {loading && <p className="admin-loading">Spinning up the desk…</p>}
+      {confirm && (
+        <ConfirmModal
+          title={confirm.title}
+          body={confirm.body}
+          confirmLabel={confirm.confirmLabel}
+          danger={confirm.danger}
+          busy={confirmBusy}
+          onConfirm={runConfirm}
+          onCancel={() => (confirmBusy ? null : setConfirm(null))}
+        />
+      )}
 
       {tab === "overview" && stats && (
         <section className="admin-panel admin-panel--overview">
@@ -303,13 +482,35 @@ export default function AdminDashboardPage() {
         <section className="admin-panel">
           <div className="admin-section-head">
             <h2>Artist roster</h2>
-            <p>{subscribers.length} accounts</p>
+            <p>
+              {visibleArtists.length} shown
+              {showDeleted ? ` · ${subscribers.length} total` : ""}
+            </p>
+          </div>
+          <div className="admin-toolbar">
+            <label className="admin-search">
+              <span className="sr-only">Search artists</span>
+              <input
+                type="search"
+                placeholder="Search name or email…"
+                value={artistQuery}
+                onChange={(e) => setArtistQuery(e.target.value)}
+              />
+            </label>
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+              Show disabled
+            </label>
           </div>
           <div className="admin-roster">
-            {subscribers.map((row, index) => (
+            {visibleArtists.map((row, index) => (
               <article
                 key={row.id}
-                className="admin-roster__card"
+                className={`admin-roster__card ${row.deleted ? "is-deleted" : ""}`}
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 <div className="admin-avatar">{initials(row.full_name)}</div>
@@ -322,11 +523,36 @@ export default function AdminDashboardPage() {
                     {row.active_plans ? `${row.active_plans} live` : "No plan"}
                   </span>
                   <span>{row.has_password ? "Password on" : "Needs password"}</span>
+                  {row.deleted && <span className="is-deleted-badge">Disabled</span>}
                   <span>{row.created_at?.slice(0, 10)}</span>
+                </div>
+                <div className="admin-roster__actions">
+                  {!row.deleted && row.has_password && (
+                    <button type="button" className="admin-text-btn" onClick={() => handleSendReset(row)}>
+                      Send reset
+                    </button>
+                  )}
+                  {row.deleted ? (
+                    <button type="button" className="admin-text-btn" onClick={() => handleRestore(row)}>
+                      Restore
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="admin-text-btn admin-text-btn--danger"
+                      onClick={() => handleSoftDelete(row)}
+                    >
+                      Disable
+                    </button>
+                  )}
                 </div>
               </article>
             ))}
-            {subscribers.length === 0 && <p className="text-army-light">No subscribers yet.</p>}
+            {visibleArtists.length === 0 && (
+              <p className="text-army-light">
+                {artistQuery ? "No artists match that search." : "No subscribers yet."}
+              </p>
+            )}
           </div>
         </section>
       )}
@@ -343,6 +569,10 @@ export default function AdminDashboardPage() {
               const used = row.tracks_used || 0;
               const pct =
                 allowed == null ? 12 : Math.min(100, Math.round((used / Math.max(allowed, 1)) * 100));
+              const draft = trackDrafts[row.id] || {
+                used: String(used),
+                allowed: allowed == null ? "" : String(allowed),
+              };
               return (
                 <article
                   key={row.id}
@@ -367,6 +597,40 @@ export default function AdminDashboardPage() {
                       {used}
                       {allowed != null ? ` / ${allowed}` : " · unlimited"} tracks · {row.receipt_code}
                     </p>
+                  </div>
+                  <div className="admin-track-edit">
+                    <label>
+                      Used
+                      <input
+                        type="number"
+                        min="0"
+                        value={draft.used}
+                        onChange={(e) =>
+                          setTrackDrafts((prev) => ({
+                            ...prev,
+                            [row.id]: { ...draft, used: e.target.value },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label>
+                      Allowed
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="∞"
+                        value={draft.allowed}
+                        onChange={(e) =>
+                          setTrackDrafts((prev) => ({
+                            ...prev,
+                            [row.id]: { ...draft, allowed: e.target.value },
+                          }))
+                        }
+                      />
+                    </label>
+                    <button type="button" className="admin-text-btn" onClick={() => handleSaveTracks(row)}>
+                      Save tracks
+                    </button>
                   </div>
                   <button
                     type="button"
