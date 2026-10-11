@@ -435,7 +435,13 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="admin-session__tags">
-                    {[row.artistName, row.genre, row.bpm && `${row.bpm} BPM`, row.musicalKey]
+                    {[
+                      row.mixFormat === "atmos" ? "Dolby Atmos" : "Stereo",
+                      row.artistName,
+                      row.genre,
+                      row.bpm && `${row.bpm} BPM`,
+                      row.musicalKey,
+                    ]
                       .filter(Boolean)
                       .map((tag) => (
                         <span key={tag}>{tag}</span>

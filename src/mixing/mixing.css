@@ -263,14 +263,36 @@
   text-decoration: none;
 }
 
+.plans-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .plans-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
 .plan-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background: var(--color-army-dark);
+  gap: 0.35rem;
+  padding: 1.4rem 1.35rem 1.35rem;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.03), transparent 40%),
+    var(--color-army-dark);
   border: 1px solid var(--border-color);
-  transition: border-color 0.2s, transform 0.2s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .plan-card:hover {
@@ -278,9 +300,83 @@
   transform: translateY(-2px);
 }
 
-.plan-card.featured {
-  border-color: var(--color-tactical-amber);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--color-army-dark) 45%);
+.plan-card.featured,
+.plan-card--highlight {
+  border-color: color-mix(in oklab, var(--color-tactical-amber) 70%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 0, 0, 0.1) 0%, transparent 42%),
+    var(--color-army-dark);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.plan-card__duration {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+}
+
+.plan-card__name {
+  margin: 0;
+  font-family: var(--font-army);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--color-tactical-cyan);
+}
+
+.plan-card__price {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-tactical-amber);
+}
+
+.plan-card__price span {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-army-light);
+}
+
+.plan-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+  margin: 1rem 0 1.25rem;
+  padding: 1rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--color-army-light);
+}
+
+.plan-card__list li {
+  position: relative;
+  padding-left: 0.9rem;
+}
+
+.plan-card__list li::before {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  left: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  background: var(--color-tactical-amber);
+}
+
+.plan-card__muted {
+  opacity: 0.85;
 }
 
 .plan-badge {

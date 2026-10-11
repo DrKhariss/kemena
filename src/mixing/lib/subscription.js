@@ -4,38 +4,57 @@ export const PLANS = {
     name: "Platinum",
     priceNgn: 2_000_000,
     tracks: "Unlimited",
+    stereoTracks: null,
+    atmosTracks: null,
     duration: "3 months",
-    features: ["Dolby Atmos included", "Best for labels with multiple artistes"],
+    features: ["Unlimited stereo mixes", "Dolby Atmos included", "Best for labels with multiple artistes"],
     badge: "Label tier",
+    highlight: false,
   },
   gold: {
     id: "gold",
     name: "Gold",
     priceNgn: 500_000,
-    tracks: "3 Dolby Atmos",
+    tracks: "8 stereo · 3 Atmos",
+    stereoTracks: 8,
+    atmosTracks: 3,
     duration: "6 months",
-    features: ["3 Dolby Atmos tracks"],
+    features: ["8 stereo tracks", "3 Dolby Atmos tracks"],
     badge: null,
+    highlight: true,
   },
   silver: {
     id: "silver",
     name: "Silver",
     priceNgn: 300_000,
-    tracks: 6,
+    tracks: "6 stereo",
+    stereoTracks: 6,
+    atmosTracks: 0,
     duration: "3 months",
-    features: ["Stereo mixing & mastering"],
+    features: ["6 stereo tracks", "No Dolby Atmos on this plan"],
     badge: null,
+    highlight: false,
   },
-  monthly: {
-    id: "monthly",
-    name: "Monthly",
+  basic: {
+    id: "basic",
+    name: "Basic",
     priceNgn: 100_000,
-    tracks: "3 per month",
+    tracks: "3 stereo / month",
+    stereoTracks: 3,
+    atmosTracks: 0,
     duration: "1 month",
-    features: ["Most commonly used", "Flexible entry point"],
+    features: ["Three stereo mixes per month", "Flexible entry point"],
     badge: "Popular",
+    highlight: false,
   },
 };
+
+/** Resolve plan; maps legacy `monthly` id → Basic. */
+export function getPlan(planId) {
+  if (!planId) return null;
+  if (planId === "monthly") return PLANS.basic;
+  return PLANS[planId] || null;
+}
 
 export const TERMS_PARAGRAPHS = [
   "I ….. of sound health and mind without coercion chose to enter into an agreement with mid-side audio. Paying for stereo mixing and mastering services, trusting them as professional engineers and giving them permission to shape my audio having it radio and streaming ready.",

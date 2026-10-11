@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createMixRequest, updateMixRequest } from "../lib/api.js";
 import { useAuth } from "../hooks/useAuth.jsx";
-import { formatNgn } from "../lib/subscription.js";
+import { formatNgn, getPlan } from "../lib/subscription.js";
 
 const LEAD_PHONE = import.meta.env.VITE_LEAD_ENGINEER_PHONE || "+234 800 000 0000";
 const WHATSAPP_DIGITS = String(import.meta.env.VITE_WHATSAPP_NUMBER || "").replace(/\D/g, "");
@@ -26,6 +26,7 @@ const emptyForm = {
   stemLink: "",
   referenceLinks: "",
   notes: "",
+  mixFormat: "stereo",
 };
 
 function trackProgress(sub) {
@@ -67,6 +68,7 @@ export default function AccountPage() {
   const sub = account?.activeSubscription;
   const mixes = account?.mixRequests || [];
   const progress = trackProgress(sub);
+  const planMeta = getPlan(sub?.planId);
 
   const [tab, setTab] = useState("overview");
   const [form, setForm] = useState(emptyForm);
@@ -110,6 +112,7 @@ export default function AccountPage() {
       stemLink: mix.stemLink || "",
       referenceLinks: mix.referenceLinks || "",
       notes: mix.notes || "",
+      mixFormat: mix.mixFormat === "atmos" ? "atmos" : "stereo",
     });
     setError("");
     setSuccess("");
@@ -329,6 +332,25 @@ export default function AccountPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-2 sm:col-span-2">
+                    <span className="subtitle !text-[9px]">Mix format *</span>
+                    <select
+                      className="input-name !py-3"
+                      value={form.mixFormat}
+                      onChange={(e) => setField("mixFormat", e.target.value)}
+                      disabled={Boolean(editingId)}
+                    >
+                      <option value="stereo">Stereo</option>
+                      {(planMeta?.atmosTracks == null || planMeta?.atmosTracks > 0) && (
+                        <option value="atmos">Dolby Atmos</option>
+                      )}
+                    </select>
+                    {planMeta?.atmosTracks === 0 && (
+                      <span className="text-xs text-army-light">
+                        Your plan does not include Dolby Atmos mixes.
+                      </span>
+                    )}
+                  </label>
+                  <label className="flex flex-col gap-2 sm:col-span-2">
                     <span className="subtitle !text-[9px]">Stem link *</span>
                     <input
                       className="input-name"
@@ -470,7 +492,13 @@ export default function AccountPage() {
                             <p className="subtitle !text-[9px] mb-1">{mix.createdAt?.slice(0, 10)}</p>
                             <h3 className="font-army text-2xl uppercase leading-none">{mix.title}</h3>
                             <p className="mt-2 text-sm text-army-light">
-                              {[mix.artistName, mix.genre, mix.bpm ? `${mix.bpm} BPM` : null, mix.musicalKey]
+                              {[
+                                mix.mixFormat === "atmos" ? "Dolby Atmos" : "Stereo",
+                                mix.artistName,
+                                mix.genre,
+                                mix.bpm ? `${mix.bpm} BPM` : null,
+                                mix.musicalKey,
+                              ]
                                 .filter(Boolean)
                                 .join(" · ") || "No metadata yet"}
                             </p>

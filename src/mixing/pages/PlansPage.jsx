@@ -3,6 +3,38 @@ import { useNavigate } from "react-router-dom";
 import { fetchConfig, initiatePayment, openPaystack, verifyPayment } from "../lib/api.js";
 import { formatNgn, loadSession, PLANS } from "../lib/subscription.js";
 
+function TrackLines({ plan }) {
+  if (plan.stereoTracks == null && plan.atmosTracks == null) {
+    return (
+      <>
+        <li>
+          <strong className="text-white">Unlimited</strong> stereo mixes
+        </li>
+        <li>
+          <strong className="text-white">Dolby Atmos</strong> included
+        </li>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <li>
+        <strong className="text-white">{plan.stereoTracks}</strong> stereo track
+        {plan.stereoTracks === 1 ? "" : "s"}
+      </li>
+      {plan.atmosTracks > 0 ? (
+        <li>
+          <strong className="text-white">{plan.atmosTracks}</strong> Dolby Atmos track
+          {plan.atmosTracks === 1 ? "" : "s"}
+        </li>
+      ) : (
+        <li className="plan-card__muted">No Dolby Atmos on this plan</li>
+      )}
+    </>
+  );
+}
+
 export default function PlansPage() {
   const navigate = useNavigate();
   const session = loadSession();
@@ -60,7 +92,7 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="plans-page flex flex-col gap-10">
       <div className="text-center">
         <p className="subtitle mb-3">Subscription plans</p>
         <h1 className="hero-heading text-3xl sm:text-5xl">Pick your plan</h1>
@@ -74,28 +106,31 @@ export default function PlansPage() {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="plans-grid">
         {Object.values(PLANS).map((plan) => (
           <article
             key={plan.id}
-            className={`plan-card ${plan.badge === "Popular" ? "featured" : ""}`}
+            className={`plan-card ${plan.highlight ? "plan-card--highlight" : ""} ${
+              plan.badge === "Popular" ? "featured" : ""
+            }`}
           >
             {plan.badge && <span className="plan-badge">{plan.badge}</span>}
-            <h2 className="font-army text-2xl font-black uppercase tracking-tight">{plan.name}</h2>
-            <p className="mt-2 font-mono text-xl font-bold text-tactical-amber">{formatNgn(plan.priceNgn)}</p>
-            <ul className="my-5 flex-1 space-y-2 border-t border-white/10 pt-4 text-sm text-army-light">
-              <li>
-                <strong className="text-white">{plan.tracks}</strong>{" "}
-                {plan.tracks === "Unlimited" || plan.tracks === "3 per month" ? "" : "tracks"}
-              </li>
-              <li>{plan.duration}</li>
-              {plan.features.map((feature) => (
-                <li key={feature}>{feature}</li>
-              ))}
+            <p className="plan-card__duration">{plan.duration}</p>
+            <h2 className="plan-card__name">{plan.name}</h2>
+            <p className="plan-card__price">
+              {formatNgn(plan.priceNgn)}
+              <span>{plan.id === "basic" ? " / month" : ` / ${plan.duration}`}</span>
+            </p>
+
+            <ul className="plan-card__list">
+              <TrackLines plan={plan} />
+              {plan.id === "platinum" && <li>Best for labels with multiple artistes</li>}
+              {plan.id === "basic" && <li>Flexible entry point</li>}
             </ul>
+
             <button
               type="button"
-              className="btn-primary"
+              className={`btn-primary ${plan.highlight || plan.badge === "Popular" ? "btn-primary--accent" : ""}`}
               disabled={payingPlan !== null}
               onClick={() => handlePay(plan.id)}
             >
