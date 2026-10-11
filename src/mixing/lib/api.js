@@ -111,8 +111,21 @@ export async function fetchAdminStats() {
   return request("/admin/stats");
 }
 
-export async function fetchAdminSubscribers() {
-  return request("/admin/subscribers");
+export async function fetchAdminSubscribers(q = "") {
+  const query = q ? `?q=${encodeURIComponent(q)}` : "";
+  return request(`/admin/subscribers${query}`);
+}
+
+export async function softDeleteAdminSubscriber(id) {
+  return request(`/admin/subscribers/${id}`, { method: "DELETE" });
+}
+
+export async function restoreAdminSubscriber(id) {
+  return request(`/admin/subscribers/${id}/restore`, { method: "POST" });
+}
+
+export async function sendAdminPasswordReset(id) {
+  return request(`/admin/subscribers/${id}/send-reset`, { method: "POST" });
 }
 
 export async function fetchAdminSubscriptions() {
