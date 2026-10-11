@@ -62,12 +62,12 @@ export default function ReceiptPage() {
       <section className="receipt-action" aria-labelledby="receipt-next-action">
         <p className="subtitle !text-[9px] !tracking-[0.18em]">Required next</p>
         <h2 id="receipt-next-action" className="receipt-action__title">
-          {needsPassword ? "Create your account password" : "Open your account"}
+          {needsPassword ? "Create your account password" : "This email already has a password"}
         </h2>
         <p className="receipt-action__copy">
           {needsPassword
             ? "You need a password before you can log in and submit mixes."
-            : "Submit mixes in-app with a Drive / Dropbox / WeTransfer stem link."}
+            : "You signed up with an email that already has a Mid-Side account. Log in with that password to open your portal and submit mixes."}
         </p>
         <div className="receipt-action__buttons">
           {needsPassword ? (
@@ -76,11 +76,11 @@ export default function ReceiptPage() {
             </Link>
           ) : (
             <>
-              <Link to="/mixing/account" className="btn-primary btn-primary--accent no-underline">
-                <span>Go to account</span>
-              </Link>
-              <Link to="/mixing/login" className="btn-primary no-underline">
+              <Link to="/mixing/login" className="btn-primary btn-primary--accent no-underline">
                 <span>Log in</span>
+              </Link>
+              <Link to="/mixing/forgot-password" className="btn-primary no-underline">
+                <span>Forgot password?</span>
               </Link>
             </>
           )}
