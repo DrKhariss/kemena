@@ -65,6 +65,11 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-5 text-center text-xs text-army-light">
+          <Link to="/mixing/forgot-password" className="text-tactical-amber">
+            Forgot password?
+          </Link>
+        </p>
+        <p className="mt-2 text-center text-xs text-army-light">
           New here? <Link to="/mixing" className="text-tactical-amber">Subscribe first</Link>
         </p>
       </div>

@@ -44,18 +44,51 @@ export default function ReceiptPage() {
     );
   }
 
+  const setupHref = `/mixing/setup-password?email=${encodeURIComponent(receipt.email)}&reference=${encodeURIComponent(receipt.reference)}`;
+  const needsPassword = !receipt.hasPassword;
+
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
+    <div className="receipt-page mx-auto flex max-w-xl flex-col gap-5">
       <div className="text-center">
         <p className="subtitle mb-3">Payment confirmed</p>
         <h1 className="hero-heading text-3xl sm:text-4xl">Thank you, {receipt.fullName}!</h1>
-        <p className="mt-4 text-sm text-army-light">
-          Your subscription is active. Use this page as your receipt for all mixing requests.
+        <p className="mt-3 text-sm text-army-light">
+          Your <strong className="text-white">{receipt.planName}</strong> plan is active
+          {receipt.demo ? " (demo)" : ""}.
         </p>
       </div>
 
+      {/* Primary action first — visible above the fold on mobile */}
+      <section className="receipt-action" aria-labelledby="receipt-next-action">
+        <p className="subtitle !text-[9px] !tracking-[0.18em]">Required next</p>
+        <h2 id="receipt-next-action" className="receipt-action__title">
+          {needsPassword ? "Create your account password" : "Open your account"}
+        </h2>
+        <p className="receipt-action__copy">
+          {needsPassword
+            ? "You need a password before you can log in and submit mixes."
+            : "Submit mixes in-app with a Drive / Dropbox / WeTransfer stem link."}
+        </p>
+        <div className="receipt-action__buttons">
+          {needsPassword ? (
+            <Link to={setupHref} className="btn-primary btn-primary--accent no-underline">
+              <span>Create account password</span>
+            </Link>
+          ) : (
+            <>
+              <Link to="/mixing/account" className="btn-primary btn-primary--accent no-underline">
+                <span>Go to account</span>
+              </Link>
+              <Link to="/mixing/login" className="btn-primary no-underline">
+                <span>Log in</span>
+              </Link>
+            </>
+          )}
+        </div>
+      </section>
+
       <div className="card-container mx-auto w-full">
-        <div className="mb-6 flex items-start justify-between border-b border-white/10 pb-4">
+        <div className="mb-5 flex items-start justify-between gap-3 border-b border-white/10 pb-4">
           <div>
             <p className="subtitle !text-[9px]">Receipt</p>
             <p className="font-mono text-xl font-bold tracking-wide">{receipt.receiptCode}</p>
@@ -65,7 +98,6 @@ export default function ReceiptPage() {
 
         <dl className="space-y-3 text-sm">
           {[
-            ["Name", receipt.fullName],
             ["Email", receipt.email],
             ["Plan", receipt.planName],
             ["Tracks", receipt.tracks],
@@ -76,81 +108,47 @@ export default function ReceiptPage() {
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between gap-4 border-b border-white/5 pb-2">
               <dt className="text-army-light">{label}</dt>
-              <dd className="text-right font-medium">{value}</dd>
+              <dd className="break-all text-right font-medium">{value}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="mt-6 border-t border-white/10 pt-5 text-sm text-army-light">
-          <h3 className="mb-3 font-mono text-xs uppercase tracking-widest text-white">Next steps</h3>
+        <div className="mt-5 border-t border-white/10 pt-4 text-sm text-army-light">
+          <h3 className="mb-2 font-mono text-xs uppercase tracking-widest text-white">After you sign in</h3>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              {receipt.hasPassword ? (
-                <>
-                  Open your <strong className="text-white">account</strong> to submit mixes in-app with a stem
-                  link.
-                </>
-              ) : (
-                <>
-                  <strong className="text-white">Create a password</strong> next — you need it before you can
-                  open your account and submit mixes.
-                </>
-              )}
+              Submit mixes from your account with a stem link. Include receipt{" "}
+              <strong className="text-white">{receipt.receiptCode}</strong> in notes if helpful.
             </li>
             <li>
-              Submit mixes from your account with a Drive / Dropbox / WeTransfer stem link. Include
-              receipt code <strong className="text-white">{receipt.receiptCode}</strong> in the request
-              notes if helpful. Optional support email:{" "}
-              <strong className="text-white">{STEMS_EMAIL}</strong>.
+              Optional support: <strong className="text-white">{STEMS_EMAIL}</strong>
             </li>
             <li>Maximum of two revisions per mix.</li>
           </ul>
         </div>
       </div>
 
-      <div className="card-container mx-auto w-full text-center">
-        <h2 className="font-army text-xl uppercase leading-tight sm:text-2xl">
-          For further enquiry, talk to the lead engineer himself!
-        </h2>
-        <a href={`tel:${LEAD_PHONE.replace(/\s/g, "")}`} className="phone-link mt-4">
+      <section className="receipt-support" aria-label="Contact support">
+        <p className="subtitle !text-[9px]">Need help?</p>
+        <p className="receipt-support__title">Talk to the lead engineer</p>
+        <a href={`tel:${LEAD_PHONE.replace(/\s/g, "")}`} className="phone-link receipt-support__phone">
           {LEAD_PHONE}
         </a>
         {WHATSAPP_HREF && (
-          <div className="mt-5">
-            <a
-              href={WHATSAPP_HREF}
-              className="btn-primary mx-auto !w-auto px-6 no-underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span>Talk to Kemena</span>
-            </a>
-          </div>
-        )}
-        <p className="mt-2 text-xs text-army-light">Lead Engineer · Mid-Side Audio</p>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-        {!receipt.hasPassword ? (
-          <Link
-            to={`/mixing/setup-password?email=${encodeURIComponent(receipt.email)}&reference=${encodeURIComponent(receipt.reference)}`}
-            className="btn-primary max-w-xs text-center no-underline"
+          <a
+            href={WHATSAPP_HREF}
+            className="btn-primary receipt-support__wa no-underline"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <span>Create account password</span>
-          </Link>
-        ) : (
-          <>
-            <Link to="/mixing/login" className="btn-primary max-w-xs text-center no-underline">
-              <span>Log in to your account</span>
-            </Link>
-            <Link to="/mixing/account" className="btn-primary max-w-xs text-center no-underline">
-              <span>Go to account</span>
-            </Link>
-          </>
+            <span>Talk to Kemena on WhatsApp</span>
+          </a>
         )}
-      </div>
-      <button type="button" className="btn-primary no-print mx-auto max-w-xs" onClick={() => window.print()}>
-        <span>Print receipt</span>
+        <p className="mt-1 text-xs text-army-light">Lead Engineer · Mid-Side Audio</p>
+      </section>
+
+      <button type="button" className="receipt-print no-print" onClick={() => window.print()}>
+        Print receipt
       </button>
     </div>
   );
