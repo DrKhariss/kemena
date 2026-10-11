@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../lib/api.js";
 import { saveSession } from "../lib/subscription.js";
 import { youtubeEmbedSrc } from "../lib/youtube.js";
@@ -11,11 +11,13 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [existingNotice, setExistingNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
+    setExistingNotice("");
 
     if (fullName.trim().length < 2) {
       setError("Please enter your full name.");
@@ -28,18 +30,30 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signupUser(email, fullName);
+      const result = await signupUser(email, fullName);
       saveSession({
         fullName: fullName.trim(),
         email: email.trim().toLowerCase(),
         termsAccepted: false,
       });
+
+      if (result.hasPassword) {
+        setExistingNotice(
+          "This email already has a Mid-Side password. You can keep going to buy a plan — after payment, log in with that password (or use Forgot password).",
+        );
+        return;
+      }
+
       navigate("/mixing/terms");
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  function continueAnyway() {
+    navigate("/mixing/terms");
   }
 
   return (
@@ -104,10 +118,29 @@ export default function SignupPage() {
           </label>
 
           {error && <p className="error-text">{error}</p>}
+          {existingNotice && (
+            <div className="flex flex-col gap-3 rounded-sm border border-tactical-amber/40 bg-tactical-amber/10 p-3 text-sm text-army-light">
+              <p>{existingNotice}</p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/mixing/login" className="text-tactical-amber underline">
+                  Log in instead
+                </Link>
+                <Link to="/mixing/forgot-password" className="text-tactical-amber underline">
+                  Forgot password?
+                </Link>
+              </div>
+            </div>
+          )}
 
-          <button className="btn-primary" type="submit" disabled={loading}>
-            <span>{loading ? "Continuing…" : "Continue to terms"}</span>
-          </button>
+          {existingNotice ? (
+            <button className="btn-primary btn-primary--accent" type="button" onClick={continueAnyway}>
+              <span>Continue to terms anyway</span>
+            </button>
+          ) : (
+            <button className="btn-primary" type="submit" disabled={loading}>
+              <span>{loading ? "Continuing…" : "Continue to terms"}</span>
+            </button>
+          )}
         </form>
       </div>
     </div>
