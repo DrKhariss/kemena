@@ -86,6 +86,7 @@ export async function createMixRequest(payload) {
       stem_link: payload.stemLink,
       reference_links: payload.referenceLinks,
       notes: payload.notes,
+      mix_format: payload.mixFormat || "stereo",
     },
   });
 }
