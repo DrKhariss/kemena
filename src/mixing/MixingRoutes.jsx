@@ -7,6 +7,8 @@ import TermsPage from "./pages/TermsPage.jsx";
 import PlansPage from "./pages/PlansPage.jsx";
 import ReceiptPage from "./pages/ReceiptPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import SetupPasswordPage from "./pages/SetupPasswordPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
@@ -50,6 +52,15 @@ export default function MixingRoutes() {
               </RedirectIfAuthed>
             }
           />
+          <Route
+            path="forgot-password"
+            element={
+              <RedirectIfAuthed>
+                <ForgotPasswordPage />
+              </RedirectIfAuthed>
+            }
+          />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="setup-password" element={<SetupPasswordPage />} />
           <Route
             path="account"

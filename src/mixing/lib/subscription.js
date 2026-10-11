@@ -12,9 +12,9 @@ export const PLANS = {
     id: "gold",
     name: "Gold",
     priceNgn: 500_000,
-    tracks: 8,
+    tracks: "1 Atmos per month",
     duration: "6 months",
-    features: ["Stereo mixing & mastering"],
+    features: ["1 Dolby Atmos track per month"],
     badge: null,
   },
   silver: {

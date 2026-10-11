@@ -41,6 +41,20 @@ export async function setupPassword(email, password, reference) {
   });
 }
 
+export async function forgotPassword(email) {
+  return request("/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+}
+
+export async function resetPassword(token, password) {
+  return request("/auth/reset-password", {
+    method: "POST",
+    body: { token, password },
+  });
+}
+
 export async function fetchMe() {
   return request("/auth/me");
 }
@@ -112,10 +126,14 @@ export async function updateAdminSubscription(id, payload) {
   return request(`/admin/subscriptions/${id}`, { method: "PATCH", body: payload });
 }
 
-export async function updateAdminMixRequest(id, status, adminNotes) {
+export async function updateAdminMixRequest(id, { status, adminNotes, deliveryLink }) {
   return request(`/admin/mix-requests/${id}`, {
     method: "PATCH",
-    body: { status, admin_notes: adminNotes },
+    body: {
+      status,
+      admin_notes: adminNotes,
+      delivery_link: deliveryLink,
+    },
   });
 }
 

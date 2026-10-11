@@ -72,6 +72,7 @@ export default function AccountPage() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [stemsShared, setStemsShared] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -124,6 +125,12 @@ export default function AccountPage() {
     event.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!stemsShared) {
+      setError("Confirm the stem folder is shared so Mid-Side can open the link.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -135,6 +142,7 @@ export default function AccountPage() {
         setSuccess("Mix submitted and saved. Track progress below.");
       }
       resetForm();
+      setStemsShared(false);
       setTab("tracks");
       await refresh();
     } catch (err) {
@@ -286,12 +294,19 @@ export default function AccountPage() {
                     {editingId ? "Update mix request" : "Submit a mix"}
                   </h2>
                   <p className="mt-2 text-sm text-army-light">
-                    Paste a Drive / Dropbox / WeTransfer link for stems. The request is saved to your
-                    account and counted against your plan.
+                    Paste a Drive / Dropbox / WeTransfer link for stems. Each new submit counts against
+                    your plan (max 2 revisions per mix).
                   </p>
                 </div>
                 {editingId && (
-                  <button type="button" className="nav-link !text-xs" onClick={resetForm}>
+                  <button
+                    type="button"
+                    className="nav-link !text-xs"
+                    onClick={() => {
+                      resetForm();
+                      setStemsShared(false);
+                    }}
+                  >
                     Cancel edit
                   </button>
                 )}
@@ -312,6 +327,32 @@ export default function AccountPage() {
                       required
                       minLength={2}
                     />
+                  </label>
+                  <label className="flex flex-col gap-2 sm:col-span-2">
+                    <span className="subtitle !text-[9px]">Stem link *</span>
+                    <input
+                      className="input-name"
+                      type="url"
+                      value={form.stemLink}
+                      onChange={(e) => setField("stemLink", e.target.value)}
+                      placeholder="https://drive.google.com/…"
+                      required
+                    />
+                    <span className="text-xs text-army-light">
+                      Share the folder with anyone who has the link (or Mid-Side’s studio email) before
+                      submitting.
+                    </span>
+                  </label>
+                  <label className="checkbox-row sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={stemsShared}
+                      onChange={(e) => setStemsShared(e.target.checked)}
+                    />
+                    <span>
+                      I’ve shared the stem folder so Mid-Side Audio can open this link without
+                      requesting access.
+                    </span>
                   </label>
                   <label className="flex flex-col gap-2">
                     <span className="subtitle !text-[9px]">Artist name</span>
@@ -350,23 +391,12 @@ export default function AccountPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-2 sm:col-span-2">
-                    <span className="subtitle !text-[9px]">Stem link *</span>
-                    <input
-                      className="input-name"
-                      type="url"
-                      value={form.stemLink}
-                      onChange={(e) => setField("stemLink", e.target.value)}
-                      placeholder="https://drive.google.com/…"
-                      required
-                    />
-                  </label>
-                  <label className="flex flex-col gap-2 sm:col-span-2">
-                    <span className="subtitle !text-[9px]">Reference links</span>
+                    <span className="subtitle !text-[9px]">Reference track (Spotify / YouTube)</span>
                     <input
                       className="input-name"
                       value={form.referenceLinks}
                       onChange={(e) => setField("referenceLinks", e.target.value)}
-                      placeholder="Spotify / YouTube references"
+                      placeholder="What’s the closest record to how you want this to sound?"
                     />
                   </label>
                   <label className="flex flex-col gap-2 sm:col-span-2">
@@ -382,7 +412,11 @@ export default function AccountPage() {
                   {error && <p className="error-text sm:col-span-2">{error}</p>}
                   {success && <p className="text-sm text-green-400 sm:col-span-2">{success}</p>}
 
-                  <button className="btn-primary sm:col-span-2" type="submit" disabled={loading}>
+                  <button
+                    className="btn-primary btn-primary--accent sm:col-span-2"
+                    type="submit"
+                    disabled={loading || !stemsShared}
+                  >
                     <span>
                       {loading
                         ? "Saving…"
@@ -448,6 +482,17 @@ export default function AccountPage() {
 
                         <StatusPipeline status={mix.status} />
 
+                        {mix.status === "delivered" && mix.deliveryLink && (
+                          <a
+                            href={mix.deliveryLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-primary btn-primary--accent no-underline"
+                          >
+                            <span>Open delivered mix</span>
+                          </a>
+                        )}
+
                         <div className="flex flex-wrap gap-3">
                           <button
                             type="button"
@@ -457,7 +502,14 @@ export default function AccountPage() {
                             {open ? "Hide details" : "View details"}
                           </button>
                           {editable && (
-                            <button type="button" className="nav-link !text-xs" onClick={() => startEdit(mix)}>
+                            <button
+                              type="button"
+                              className="nav-link !text-xs"
+                              onClick={() => {
+                                setStemsShared(true);
+                                startEdit(mix);
+                              }}
+                            >
                               Edit submission
                             </button>
                           )}
@@ -465,6 +517,19 @@ export default function AccountPage() {
 
                         {open && (
                           <div className="mix-detail-grid">
+                            {mix.deliveryLink && (
+                              <div>
+                                <p className="subtitle !text-[9px] mb-1">Delivery</p>
+                                <a
+                                  href={mix.deliveryLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="break-all text-sm text-tactical-amber underline"
+                                >
+                                  {mix.deliveryLink}
+                                </a>
+                              </div>
+                            )}
                             <div>
                               <p className="subtitle !text-[9px] mb-1">Stem link</p>
                               {mix.stemLink ? (
@@ -481,7 +546,7 @@ export default function AccountPage() {
                               )}
                             </div>
                             <div>
-                              <p className="subtitle !text-[9px] mb-1">References</p>
+                              <p className="subtitle !text-[9px] mb-1">Reference track</p>
                               <p className="text-sm whitespace-pre-wrap">{mix.referenceLinks || "—"}</p>
                             </div>
                             <div>

@@ -114,9 +114,23 @@ export default function AdminDashboardPage() {
     return () => clearInterval(tick);
   }, []);
 
-  async function handleMixStatus(id, status, adminNotes) {
-    await updateAdminMixRequest(id, status, adminNotes);
-    await loadAll();
+  async function handleMixStatus(id, { status, adminNotes, deliveryLink }) {
+    try {
+      await updateAdminMixRequest(id, { status, adminNotes, deliveryLink });
+      setError("");
+      await loadAll();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function readMixDraft(row) {
+    const notesEl = document.getElementById(`admin-notes-${row.id}`);
+    const deliveryEl = document.getElementById(`admin-delivery-${row.id}`);
+    return {
+      adminNotes: notesEl ? notesEl.value : row.adminNotes,
+      deliveryLink: deliveryEl ? deliveryEl.value : row.deliveryLink,
+    };
   }
 
   async function handleSubStatus(id, status) {
@@ -458,13 +472,40 @@ export default function AdminDashboardPage() {
                     <label className="flex flex-col gap-2 flex-1">
                       <span className="subtitle !text-[9px]">Engineer notes (visible to artist)</span>
                       <input
+                        id={`admin-notes-${row.id}`}
                         className="input-name"
                         defaultValue={row.adminNotes || ""}
-                        key={`${row.id}-${row.adminNotes || ""}`}
-                        placeholder="Delivery link, mix notes, revision ask…"
+                        key={`${row.id}-notes-${row.adminNotes || ""}`}
+                        placeholder="Revision ask, loudness notes…"
                         onBlur={(e) => {
                           if ((e.target.value || "") !== (row.adminNotes || "")) {
-                            handleMixStatus(row.id, row.status, e.target.value);
+                            const draft = readMixDraft(row);
+                            handleMixStatus(row.id, {
+                              status: row.status,
+                              adminNotes: e.target.value,
+                              deliveryLink: draft.deliveryLink,
+                            });
+                          }
+                        }}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 flex-1">
+                      <span className="subtitle !text-[9px]">Delivery link (required for Delivered)</span>
+                      <input
+                        id={`admin-delivery-${row.id}`}
+                        className="input-name"
+                        type="url"
+                        defaultValue={row.deliveryLink || ""}
+                        key={`${row.id}-delivery-${row.deliveryLink || ""}`}
+                        placeholder="https://drive.google.com/… finished mix"
+                        onBlur={(e) => {
+                          if ((e.target.value || "") !== (row.deliveryLink || "")) {
+                            const draft = readMixDraft(row);
+                            handleMixStatus(row.id, {
+                              status: row.status,
+                              adminNotes: draft.adminNotes,
+                              deliveryLink: e.target.value,
+                            });
                           }
                         }}
                       />
@@ -474,7 +515,14 @@ export default function AdminDashboardPage() {
                       <select
                         className="input-name !py-3 text-xs"
                         value={row.status}
-                        onChange={(e) => handleMixStatus(row.id, e.target.value, row.adminNotes)}
+                        onChange={(e) => {
+                          const draft = readMixDraft(row);
+                          handleMixStatus(row.id, {
+                            status: e.target.value,
+                            adminNotes: draft.adminNotes,
+                            deliveryLink: draft.deliveryLink,
+                          });
+                        }}
                       >
                         {STATUS_ORDER.map((status) => (
                           <option key={status} value={status}>
@@ -484,6 +532,18 @@ export default function AdminDashboardPage() {
                       </select>
                     </label>
                   </div>
+                  {row.deliveryLink && (
+                    <p className="mt-3 text-xs">
+                      <a
+                        href={row.deliveryLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-tactical-amber underline"
+                      >
+                        Open current delivery ↗
+                      </a>
+                    </p>
+                  )}
                 </div>
               </article>
             ))}

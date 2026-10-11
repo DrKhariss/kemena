@@ -127,6 +127,118 @@
   z-index: 1;
 }
 
+.btn-primary--accent {
+  color: #0a0a0a;
+  background: var(--color-tactical-amber);
+  border-color: var(--color-tactical-amber);
+}
+
+.btn-primary--accent:hover:not(:disabled) {
+  color: #0a0a0a;
+  border-color: #ff3333;
+  background: #ff3333;
+  box-shadow: 0 8px 24px rgba(255, 0, 0, 0.22);
+}
+
+.btn-primary--accent::before {
+  display: none;
+}
+
+.receipt-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid color-mix(in oklab, var(--color-tactical-amber) 45%, var(--border-color));
+  background: color-mix(in oklab, var(--color-tactical-amber) 10%, var(--color-army-dark));
+}
+
+.receipt-action__title {
+  font-family: var(--font-army);
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--color-tactical-cyan);
+}
+
+.receipt-action__copy {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-army-light);
+}
+
+.receipt-action__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+@media (min-width: 480px) {
+  .receipt-action__buttons {
+    flex-direction: row;
+  }
+
+  .receipt-action__buttons .btn-primary {
+    width: auto;
+    min-width: 12rem;
+    flex: 1;
+  }
+}
+
+.receipt-support {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.15rem 1rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  background: color-mix(in oklab, var(--color-army-green) 12%, transparent);
+}
+
+.receipt-support__title {
+  margin: 0;
+  font-family: var(--font-army);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-tactical-cyan);
+}
+
+.receipt-support__phone {
+  font-size: 1.15rem;
+}
+
+.receipt-support__wa {
+  margin-top: 0.35rem;
+  max-width: 20rem;
+}
+
+.receipt-print {
+  margin: 0 auto;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-army-light);
+  background: transparent;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.receipt-print:hover {
+  color: var(--color-tactical-amber);
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
